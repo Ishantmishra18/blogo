@@ -1,13 +1,16 @@
 import React ,{ useState, useCallback } from "react";
 import { FiUpload, FiFile, FiBarChart2, FiPieChart } from "react-icons/fi";
 import api from "../utils/api";
+import Chart from './chart'
+import * as XLSX from 'xlsx';
+
 
 
 export default function UploadPage() {
   const [file, setFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [charts, setCharts] = useState([]);
+  const [exData, setExData] = useState({});
   const [previewData, setPreviewData] = useState([]);
 
   const handleFileChange = (e) => {
@@ -30,6 +33,8 @@ export default function UploadPage() {
     }
   };
 
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) return;
@@ -44,16 +49,11 @@ export default function UploadPage() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      // 2. Process data
-      const summaryRes = await api.post(
-        `/summarize/${uploadRes.data.id}`
-      );
+      console.log(uploadRes.data.data)
+      setExData(uploadRes.data.data)
+      
 
-      // 3. Get chart-ready data
-      const { data } = await api.get(
-        `/summarize/${uploadRes.data.id}/results`
-      );
-      setCharts(data.charts);
+  
     } catch (err) {
       setError(err.response?.data?.message || "Processing failed");
     } finally {
@@ -184,7 +184,7 @@ export default function UploadPage() {
                         : "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
                     }`}
                   >
-                    {isLoading ? (
+                    {isLoading && Object.keys(exData).length < 0 ? (
                       <>
                         <svg
                           className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
@@ -221,14 +221,7 @@ export default function UploadPage() {
           </div>
         </div>
 
-        {/* Charts Display */}
-        {charts.length > 0 && (
-          <div className="mt-16">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8">
-              Your Data Visualization
-            </h2>
-          </div>
-        )}
+        {Object.keys(exData).length > 0 && <Chart data={exData} />}
       </div>
     </div>
   );

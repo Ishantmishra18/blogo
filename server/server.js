@@ -6,6 +6,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import connectDB from './configs/db.js';
 import authRoutes from './routes/authRoutes.js';
+import fileRoutes from './routes/fileRoutes.js'
 import cors from 'cors';
 
 const app = express();
@@ -23,7 +24,8 @@ app.use(cookieParser());
 
 
 // routes
-app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+app.use('/files' , fileRoutes)
 
 
 const PORT = process.env.PORT || 3000;
