@@ -1,4 +1,5 @@
 import File from '../models/file.js';
+import User from '../models/user.js'
 import asyncHandler from 'express-async-handler';
 import XLSX from 'xlsx';
 import fs from 'fs';

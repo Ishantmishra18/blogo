@@ -7,11 +7,13 @@ import * as XLSX from 'xlsx';
 
 
 export default function UploadPage() {
+  
   const [file, setFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [exData, setExData] = useState({});
   const [previewData, setPreviewData] = useState([]);
+  
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -63,7 +65,7 @@ export default function UploadPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+      <div className=" mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
@@ -75,7 +77,7 @@ export default function UploadPage() {
         </div>
 
         {/* Upload Card */}
-        <div className="bg-white shadow-xl rounded-lg overflow-hidden">
+        <div className="bg-white shadow-xl mx-[15vw] rounded-lg overflow-hidden">
           <div className="p-6 sm:p-8">
             <form onSubmit={handleSubmit}>
               <div className="space-y-8">

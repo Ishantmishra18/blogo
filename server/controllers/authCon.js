@@ -1,8 +1,11 @@
 import User from '../models/user.js';
+import File from '../models/file.js'
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 
+
+const jwtSec='ldksjflakjfdalkdj'
 export const register = async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -70,3 +73,12 @@ export const getMe = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+export const getHistory = async ( req , res)=>{
+  try{
+    const files = await File.find({ uploadedBy: req.user.id });
+    res.status(200).json(files);
+  } catch (error){
+    res.status(500).json({error})
+  }
+}

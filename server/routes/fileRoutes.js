@@ -8,7 +8,7 @@ import  excelUpload   from '../middlewares/fileUploadMiddle.js';
 const router = express.Router();
 
 // File operations routes
-router.post('/upload', excelUpload, uploadFile);
+router.post('/upload', protect, excelUpload, uploadFile);
 
 
 export default router;
