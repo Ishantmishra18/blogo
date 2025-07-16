@@ -77,13 +77,13 @@ export default function UploadPage() {
         </div>
 
         {/* Upload Card */}
-        <div className="bg-white shadow-xl mx-[15vw] rounded-lg overflow-hidden">
+        <div className="bg-white shadow-xl mx-[20vw] rounded-lg overflow-hidden">
           <div className="p-6 sm:p-8">
             <form onSubmit={handleSubmit}>
               <div className="space-y-8">
                 {/* Drag & Drop Zone */}
                 <div
-                  className={`border-2 border-dashed rounded-xl p-12 text-center transition-all ${
+                  className={`border-2 border-dashed rounded-xl p-10 text-center transition-all ${
                     file
                       ? "border-green-500 bg-green-50"
                       : "border-gray-300 hover:border-blue-500"

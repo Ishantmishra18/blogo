@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
 import api from '../utils/api';
 import { Link } from 'react-router-dom';
+import Sidelog from './sidelog';
+import { FaEye } from "react-icons/fa";
+import { FaEyeSlash } from "react-icons/fa";
+import Loading from './loading';
 
 
 const Register = () => {
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
+  const [eye , setEye] = useState(false);
+  const [isLoading , setIsLoading] = useState(false)
 
   const handleSubmit = async (e) => {
+    setIsLoading(true);
     e.preventDefault();
     try {
       await api.post('/auth/register', form);
@@ -15,57 +22,36 @@ const Register = () => {
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
     }
+    finally{
+      setIsLoading(false)
+    }
   };
 
-  const handleGoogleSignup = () => {
-    window.location.href = 'http://localhost:5000/auth/google'; //not used a tag becuase of external url from the web
-  };
+
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col w-[90vw] md:w-[400px] items-center justify-center gap-6 p-8"
-      >
-        <h1 className="text-2xl md:text-4xl font-semibold text-gray-800 mb-2">
-          Create an Account
-        </h1>
+      <div className='h-screen w-screen flex'>
+        {isLoading&&<Loading/>}
+     <Sidelog></Sidelog>
+        <div className="login grid place-content-center h-auto w-[45vw] py-6 shadow-lg bg-white rounded-md">
+           
+            <form action="" onSubmit={handleSubmit} className='flex flex-col gap-4 items-center w-[27vw]'>
+                 <h1 className='text-6xl font-semibold text-sec'>Welcome to <span className='text-green-700'>ExAnaly</span></h1>
+                <input type="text" placeholder='username' value={form.username} onChange={e=>setForm({ ...form, username: e.target.value })} className=' border-b-2 border-neutral-200 outline-none h-16 w-full' />
 
-        <input
-          type="text"
-          placeholder="Username"
-          className="w-full py-3 px-4 bg-gray-100 text-gray-800 rounded-lg focus:bg-gray-200 focus:outline-none"
-          value={form.username}
-          onChange={(e) => setForm({ ...form, username: e.target.value })}
-        />
+                <div className="border-b-2 border-neutral-200 h-16 w-full overflow-hidden relative">
+                     <input type={!eye?"password":'text'} placeholder='password'  value={form.password} onChange={e=>setForm({ ...form, password: e.target.value })} className='h-full w-full absolute top-0 outline-none'/>
+                     <div className='absolute cursor-pointer h-6 w-6  top-1/2 -translate-y-1/2 right-2' onClick={()=>setEye(!eye)}>
+                        {eye?<FaEye className='h-full w-full text-neutral-700'/>:<FaEyeSlash className='h-full w-full text-neutral-700'/>}
 
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full py-3 px-4 bg-gray-100 text-gray-800 rounded-lg focus:outline-none focus:bg-gray-200"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-        />
-
-        {error && <p className="text-red-500 text-sm -mt-3">{error}</p>}
-
-        <button
-          type="submit"
-          className="w-full py-3 bg-black text-white rounded-full hover:translate-y-1 cursor-pointer duration-200 transition"
-        >
-          Register
-        </button>
-
-        <div className="text-sm text-gray-600">
-          <span>Already have an account? </span>
-          <Link
-            to="/login"
-            className="text-blue-500 hover:underline hover:text-blue-700"
-          >
-            Login here
-          </Link>
+                     </div>
+                     
+                </div>
+                {error && <p className="text-red-500">{error}</p>}
+                <input type="submit" className='h-16 w-full mt-24 bg-green-600 text-white font-bold rounded-md cursor-pointer'/>
+                <h4>Already have an account? <Link to='/login' className='underline text-blue-600'>login to account</Link></h4>
+            </form>
         </div>
-      </form>
     </div>
   );
 };

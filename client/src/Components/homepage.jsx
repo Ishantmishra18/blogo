@@ -9,17 +9,17 @@ const Homepage = () => {
       
       <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
         {/* Hero Section */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <div className="text-center">
+        <section className="py-20 px-12 h-[88vh] flex">
+          <div className=" cont w-[60vw]">
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
               Transform Your <span className="text-green-600">Excel Data</span> Into Insights
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-10">
+            <p className="text-xl text-gray-600">
               Upload your spreadsheets and get powerful visualizations, trend analysis, and data summaries in seconds.
             </p>
             <Link 
               to="/upload" 
-              className="inline-flex items-center px-8 py-4 bg-green-600 hover:bg-green-700 text-white text-lg font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
+              className="inline-flex items-center mt-10 px-8 py-4 bg-green-600 hover:bg-green-700 text-white text-lg font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
             >
               Upload Your Files Now
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
@@ -27,7 +27,11 @@ const Homepage = () => {
               </svg>
             </Link>
           </div>
+          <div className="">
+            <img src="/assets/excel.png" alt="" className='animate-float' />
+          </div>
         </section>
+
 
         {/* Features Section */}
         <section className="py-16 bg-white">
