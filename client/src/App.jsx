@@ -8,6 +8,7 @@ import Login from './Components/login';
 import Register from './Components/register';
 import Navbar from './Components/navbar';
 import Profile from './Components/profile';
+import { ThemeProvider } from './Context/themeContext';
 
 
 const router = createBrowserRouter([
@@ -36,7 +37,9 @@ const router = createBrowserRouter([
 const App = () => {
   return (
     <UserProvider>
+      <ThemeProvider>
       <RouterProvider router={router} />
+      </ThemeProvider>
     </UserProvider>
   );
 };

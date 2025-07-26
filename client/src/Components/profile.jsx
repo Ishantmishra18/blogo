@@ -10,12 +10,24 @@ const Profile = () => {
   const [expandedItem, setExpandedItem] = useState(null);
   const navigate = useNavigate();
   const chartContainers = useRef([]);
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const [sortBy, setSortBy] = useState('date');
 
   const handleLogout = async () => {
     await api.post('/auth/logout');
     setUser(null);
     navigate('/login');
   };
+
+  const handleDel = async (id) => {
+    try { await api.delete(`/files/delete/${id}`)
+  setUserHistory(prevHistory => prevHistory.filter(item => item._id !== id));
+  }
+    
+    catch (error) {
+      console.error('Error deleting file:', error);
+    }
+  }
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -28,6 +40,7 @@ const Profile = () => {
     };
     fetchHistory();
   }, []);
+
 
   const toggleDetails = (index) => {
     if (expandedItem === index) {
@@ -47,7 +60,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm sticky z-40 top-0 z-10">
+      <header className="bg-white shadow-sm sticky z-40 top-0 ">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <Link to="/" className="flex items-center">
             <div className="h-10 w-10 bg-green-600 rounded-lg flex items-center justify-center mr-3">
@@ -104,34 +117,97 @@ const Profile = () => {
 
         {/* Upload History */}
         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">Your Upload History</h2>
-            <span className="text-sm text-gray-500">
-              {userHistory.length} {userHistory.length === 1 ? 'file' : 'files'}
-            </span>
+      <div className="flex justify-between items-center mb-6">
+  <h2 className="text-xl font-semibold text-gray-800">Your Upload History</h2>
+  
+  <div className="flex items-center space-x-4">
+    {/* Sort Dropdown */}
+    <div className="relative">
+      <button 
+        className="flex items-center space-x-1 text-sm font-medium text-gray-600 hover:text-gray-800 focus:outline-none"
+        onClick={() => setIsSortOpen(!isSortOpen)}
+      >
+        <span>Sort by</span>
+        <svg 
+          className={`h-4 w-4 transition-transform ${isSortOpen ? 'rotate-180' : ''}`}
+          xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 20 20" 
+          fill="currentColor"
+        >
+          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+        </svg>
+      </button>
+      
+      {isSortOpen && (
+        <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-10 border border-gray-100">
+          <div className="py-1">
+            <button
+              onClick={() => handleSort('date')}
+              className={`block w-full text-left px-4 py-2 text-sm ${sortBy === 'date' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              <div className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                By Upload Time
+              </div>
+            </button>
+            <button
+              onClick={() => handleSort('name')}
+              className={`block w-full text-left px-4 py-2 text-sm ${sortBy === 'name' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              <div className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                By Name (A-Z)
+              </div>
+            </button>
+            <button
+              onClick={() => handleSort('size')}
+              className={`block w-full text-left px-4 py-2 text-sm ${sortBy === 'size' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
+            >
+              <div className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                By File Size
+              </div>
+            </button>
           </div>
+        </div>
+      )}
+    </div>
+    
+    <span className="text-sm text-gray-500">
+      {userHistory.length} {userHistory.length === 1 ? 'file' : 'files'}
+    </span>
+  </div>
+</div>
           
           {userHistory.length > 0 ? (
             <div className="space-y-4">
               {userHistory.map((item, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-5 hover:border-green-300 transition-all">
+                <div key={index} className="border border-gray-200 rounded-lg p-8 hover:border-green-300 transition-all  relative">
+                  <div className="del absolute bottom-1 right-1 px-2 py-1 bg-red-500 rounded-br-lg text-white cursor-pointer" onClick={()=>{handleDel(item._id)}}>delete</div>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    
                     <div className="mb-3 sm:mb-0">
                       <h3 className="font-medium text-gray-900 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-600" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                         </svg>
-                        {item.fileName}
+                        {item.title || 'Untitled File'}
                       </h3>
-                      <p className="text-sm text-gray-500 ml-7">
-                        Uploaded on {new Date(item.uploadDate).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
+                     <p className="text-sm text-gray-500 ml-7">
+                      Uploaded on {new Date(item.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
                     </div>
                     <div className="flex items-center space-x-4">
                       <span className="text-sm text-gray-600">{item.size} KB</span>

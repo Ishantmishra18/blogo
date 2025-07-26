@@ -1,23 +1,24 @@
-import React ,{ useState, useCallback } from "react";
+import React, { useState } from "react";
 import { FiUpload, FiFile, FiBarChart2, FiPieChart } from "react-icons/fi";
 import api from "../utils/api";
-import Chart from './chart'
+import Chart from './chart';
 import * as XLSX from 'xlsx';
 
-
-
 export default function UploadPage() {
-  
   const [file, setFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [exData, setExData] = useState({});
   const [previewData, setPreviewData] = useState([]);
-  
+  const [title, setTitle] = useState("");
+  const [titleError, setTitleError] = useState("");
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    if (selectedFile && selectedFile.type.includes("spreadsheet")) {
+    if (selectedFile && (
+      selectedFile.type.includes("spreadsheet") || 
+      selectedFile.name.match(/\.(xlsx|xls|csv)$/i)
+    )) {
       setFile(selectedFile);
       setError("");
       // Simple preview (first 5 rows)
@@ -28,34 +29,47 @@ export default function UploadPage() {
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
         setPreviewData(jsonData.slice(0, 5));
+        
+        // Auto-generate title from filename if empty
+        if (!title) {
+          const cleanName = selectedFile.name.replace(/\.[^/.]+$/, ""); // Remove extension
+          setTitle(cleanName);
+        }
       };
       reader.readAsArrayBuffer(selectedFile);
     } else {
-      setError("Please upload a valid Excel file (.xlsx, .xls)");
+      setError("Please upload a valid Excel file (.xlsx, .xls, .csv)");
     }
   };
 
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file) return;
+    
+    // Validate title
+    if (!title.trim()) {
+      setTitleError("Please enter a title for your chart");
+      return;
+    } else {
+      setTitleError("");
+    }
+    
+    if (!file) {
+      setError("Please select a file first");
+      return;
+    }
 
     setIsLoading(true);
     try {
       const formData = new FormData();
       formData.append("excelFile", file);
+      formData.append("title", title); 
 
-      // 1. Upload file
       const uploadRes = await api.post("/files/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      console.log(uploadRes.data.data)
-      setExData(uploadRes.data.data)
+      setExData(uploadRes.data.data);
       
-
-  
     } catch (err) {
       setError(err.response?.data?.message || "Processing failed");
     } finally {
@@ -65,7 +79,7 @@ export default function UploadPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className=" mx-auto">
+      <div className="mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
@@ -77,7 +91,7 @@ export default function UploadPage() {
         </div>
 
         {/* Upload Card */}
-        <div className="bg-white shadow-xl mx-[20vw] rounded-lg overflow-hidden">
+        <div className="bg-white shadow-xl mx-auto max-w-4xl rounded-lg overflow-hidden">
           <div className="p-6 sm:p-8">
             <form onSubmit={handleSubmit}>
               <div className="space-y-8">
@@ -121,6 +135,26 @@ export default function UploadPage() {
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* Title Input */}
+                <div className="space-y-2">
+                  <label htmlFor="chart-title" className="block text-sm font-medium text-gray-700">
+                    Chart Title *
+                  </label>
+                  <input
+                    id="chart-title"
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className={`block w-full px-4 py-2 rounded-md border ${
+                      titleError ? "border-red-300" : "border-gray-300"
+                    } shadow-sm focus:ring-blue-500 focus:border-blue-500`}
+                    placeholder="Enter a title for your chart"
+                  />
+                  {titleError && (
+                    <p className="text-sm text-red-600">{titleError}</p>
+                  )}
                 </div>
 
                 {error && (
@@ -179,14 +213,14 @@ export default function UploadPage() {
                 <div className="flex justify-end">
                   <button
                     type="submit"
-                    disabled={!file || isLoading}
+                    disabled={!file || isLoading || !title.trim()}
                     className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                      !file || isLoading
+                      !file || isLoading || !title.trim()
                         ? "bg-gray-400 cursor-not-allowed"
                         : "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
                     }`}
                   >
-                    {isLoading && Object.keys(exData).length < 0 ? (
+                    {isLoading ? (
                       <>
                         <svg
                           className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
@@ -223,7 +257,7 @@ export default function UploadPage() {
           </div>
         </div>
 
-        {Object.keys(exData).length > 0 && <Chart data={exData} />}
+        {Object.keys(exData).length > 0 && <Chart data={exData} title={title} />}
       </div>
     </div>
   );

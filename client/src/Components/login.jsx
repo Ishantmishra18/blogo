@@ -37,7 +37,7 @@ const Login = () => {
      <div className='h-screen w-screen flex'>
        {isLoading&&<Loading/>}
      <Sidelog></Sidelog>
-        <div className="login grid place-content-center h-auto w-[45vw] py-6 shadow-lg bg-white rounded-md">
+        <div className="login grid place-content-center h-auto w-[65vw] py-6 shadow-lg bg-white rounded-md">
            
             <form action="" onSubmit={handleSubmit} className='flex flex-col gap-4 items-center w-[27vw]'>
                  <h1 className='text-6xl font-semibold text-sec'>Login User</h1>

@@ -15,7 +15,7 @@ export const UserProvider = ({ children }) => {
         const res = await api.get('/auth/me');
         setUser(res.data);
       } catch (err) {
-        console.error("User fetch failed", err); // Add this line
+        console.error("User fetch failed", err);
         setUser(null);
       }
     };

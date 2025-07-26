@@ -1,7 +1,6 @@
 
 import jwt from 'jsonwebtoken';
 
-const jwtSec='ldksjflakjfdalkdj'
 export const protect = async (req, res, next) => {
   try {
     const token = req.cookies.token; // or from headers

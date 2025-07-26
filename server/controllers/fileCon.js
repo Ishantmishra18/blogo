@@ -89,6 +89,7 @@ const generateGraphData = (jsonData) => {
 
 // Main Controller
 export const uploadFile = asyncHandler(async (req, res) => {
+  const { title } = req.body;
   if (!req.file) {
     res.status(400);
     throw new Error('Please upload a file');
@@ -107,7 +108,7 @@ export const uploadFile = asyncHandler(async (req, res) => {
 
     // 4. Save to database
     const file = await File.create({
-      title: req.file.originalname,
+      title,
       summary,
       graphData,
       url: fileUrl,
@@ -138,3 +139,10 @@ export const uploadFile = asyncHandler(async (req, res) => {
     });
   }
 });
+
+
+export const deleteFile = asyncHandler(async (req, res) => {
+  const fileId = req.params.id;
+  const file = await File.findByIdAndDelete(fileId);
+}); 
+
