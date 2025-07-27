@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000',  // http://localhost:3000
+  baseURL: 'https://exanalybackend.onrender.com',  // http://localhost:3000
                 //https://exanalybackend.onrender.com
 
   withCredentials: true, 

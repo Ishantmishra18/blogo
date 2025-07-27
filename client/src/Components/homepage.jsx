@@ -5,7 +5,11 @@ import Navbar from './navbar';
 const Homepage = () => {
 
 
-  let features = [{main:'the good' , sub:'realy'},{main:'wow' , sub:'les go'},{main:'nice' , sub:'try it'}]
+const features = [
+  { main: 'Advanced Analytics ', sub: 'Get automatic statistical analysis, trend detection, and predictive insights from your spreadsheet data.' },
+  { main: 'Beautiful Visualizations', sub: 'Transform rows of data into interactive charts and graphs that make patterns instantly visible.' },
+  { main: 'Secure Processing', sub: 'Your data is encrypted during upload and processing. We never store your files longer than necessary.' }
+];
   return (
     <>
       <Navbar />

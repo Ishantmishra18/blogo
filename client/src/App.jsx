@@ -9,6 +9,7 @@ import Register from './Components/register';
 import Navbar from './Components/navbar';
 import Profile from './Components/profile';
 import { ThemeProvider } from './Context/themeContext';
+import Admin from './Components/adminPanel';
 
 
 const router = createBrowserRouter([
@@ -31,6 +32,9 @@ const router = createBrowserRouter([
   },{
     path:'/profile',
     element:<><Profile/></>
+  },{
+    path:'/admin',
+    element:<><Admin/></>
   }
 ])
 

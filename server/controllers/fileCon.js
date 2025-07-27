@@ -141,6 +141,8 @@ export const uploadFile = asyncHandler(async (req, res) => {
 });
 
 
+
+
 export const deleteFile = asyncHandler(async (req, res) => {
   const fileId = req.params.id;
   const file = await File.findByIdAndDelete(fileId);

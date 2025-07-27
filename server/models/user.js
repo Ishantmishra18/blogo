@@ -7,12 +7,7 @@ const UserSchema = new mongoose.Schema(
     cover: { type: String, default: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2NIXc73ZgxZfbifJP3Bsv35sekQyklo-9JA&s'},
     name: String,
     email: String,
-    history: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'File',
-      },
-    ],
+    history: [String],
   }
 );
 

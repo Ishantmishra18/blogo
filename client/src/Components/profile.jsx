@@ -3,6 +3,7 @@ import { useUser } from '../Context/userContext';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import Chart from './chart';
+import ConfirmCard from './confirmCard';
 
 const Profile = () => {
   const { user, setUser } = useUser();
@@ -10,8 +11,8 @@ const Profile = () => {
   const [expandedItem, setExpandedItem] = useState(null);
   const navigate = useNavigate();
   const chartContainers = useRef([]);
-  const [isSortOpen, setIsSortOpen] = useState(false);
-  const [sortBy, setSortBy] = useState('date');
+  const [showConfirmation, setshow] = useState(false);
+  const [deleteId, setFileId] = useState({ id: '' , title: '' });
 
   const handleLogout = async () => {
     await api.post('/auth/logout');
@@ -58,7 +59,10 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-green-50 to-gray-50 relative">
+      {showConfirmation && 
+     
+        <ConfirmCard close={()=>setshow(false)} onClick={()=>handleDel(fileId)} text={"are you sure you want to delete this file?"} name={deleteId.title} />}
       {/* Header */}
       <header className="bg-white shadow-sm sticky z-40 top-0 ">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
@@ -122,62 +126,7 @@ const Profile = () => {
   
   <div className="flex items-center space-x-4">
     {/* Sort Dropdown */}
-    <div className="relative">
-      <button 
-        className="flex items-center space-x-1 text-sm font-medium text-gray-600 hover:text-gray-800 focus:outline-none"
-        onClick={() => setIsSortOpen(!isSortOpen)}
-      >
-        <span>Sort by</span>
-        <svg 
-          className={`h-4 w-4 transition-transform ${isSortOpen ? 'rotate-180' : ''}`}
-          xmlns="http://www.w3.org/2000/svg" 
-          viewBox="0 0 20 20" 
-          fill="currentColor"
-        >
-          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-        </svg>
-      </button>
-      
-      {isSortOpen && (
-        <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-10 border border-gray-100">
-          <div className="py-1">
-            <button
-              onClick={() => handleSort('date')}
-              className={`block w-full text-left px-4 py-2 text-sm ${sortBy === 'date' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
-            >
-              <div className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                By Upload Time
-              </div>
-            </button>
-            <button
-              onClick={() => handleSort('name')}
-              className={`block w-full text-left px-4 py-2 text-sm ${sortBy === 'name' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
-            >
-              <div className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                By Name (A-Z)
-              </div>
-            </button>
-            <button
-              onClick={() => handleSort('size')}
-              className={`block w-full text-left px-4 py-2 text-sm ${sortBy === 'size' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'}`}
-            >
-              <div className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-                By File Size
-              </div>
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+
     
     <span className="text-sm text-gray-500">
       {userHistory.length} {userHistory.length === 1 ? 'file' : 'files'}
@@ -185,77 +134,96 @@ const Profile = () => {
   </div>
 </div>
           
-          {userHistory.length > 0 ? (
-            <div className="space-y-4">
-              {userHistory.map((item, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-8 hover:border-green-300 transition-all  relative">
-                  <div className="del absolute bottom-1 right-1 px-2 py-1 bg-red-500 rounded-br-lg text-white cursor-pointer" onClick={()=>{handleDel(item._id)}}>delete</div>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    
-                    <div className="mb-3 sm:mb-0">
-                      <h3 className="font-medium text-gray-900 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-600" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                        </svg>
-                        {item.title || 'Untitled File'}
-                      </h3>
-                     <p className="text-sm text-gray-500 ml-7">
-                      Uploaded on {new Date(item.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <span className="text-sm text-gray-600">{item.size} KB</span>
-                      <span className="text-sm text-gray-600">{item.rows} rows</span>
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        item.status === 'Processed' ? 'bg-green-100 text-green-800' : 
-                        item.status === 'Processing' ? 'bg-yellow-100 text-yellow-800' : 
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {item.status || 'Processed'}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <button
-                    onClick={() => toggleDetails(index)}
-                    className="mt-3 text-sm flex items-center text-green-600 hover:text-green-800 focus:outline-none transition-colors"
-                  >
-                    {expandedItem === index ? (
-                      <>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
-                        </svg>
-                        Hide details
-                      </>
-                    ) : (
-                      <>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                        View details
-                      </>
-                    )}
-                  </button>
-
-                  <div 
-                    ref={el => chartContainers.current[index] = el}
-                    className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                      expandedItem === index ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
-                    }`}
-                  >
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <Chart data={item} />
-                    </div>
-                  </div>
-                </div>
-              ))}
+         {userHistory.length > 0 ? (
+  <div className="space-y-4">
+    {userHistory.map((item, index) => (
+      <div 
+        key={index} 
+        className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 relative overflow-hidden"
+      >
+        {/* File header with delete button */}
+        <div className="flex justify-between items-start p-5">
+          <div className="flex items-start space-x-3">
+            <div className="p-2 bg-green-50 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+              </svg>
             </div>
+            <div>
+              <h3 className="font-medium text-gray-900">
+                {item.title || 'Untitled File'}
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Uploaded {new Date(item.createdAt).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
+            </div>
+          </div>
+          
+          {/* Modern delete button */}
+          <button 
+            onClick={() => setshow(true) & setFileId({ id: item._id, title: item.title })}
+            className="text-gray-400 cursor-pointer hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50"
+            aria-label="Delete file"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </div>
+
+        {/* File metadata */}
+        <div className="px-5 pb-3 flex items-center space-x-4">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            {item.size} KB
+          </span>
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            {item.rows} rows
+          </span>
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            item.status === 'Processed' ? 'bg-green-100 text-green-800' : 
+            item.status === 'Processing' ? 'bg-yellow-100 text-yellow-800' : 
+            'bg-blue-100 text-blue-800'
+          }`}>
+            {item.status || 'Processed'}
+          </span>
+        </div>
+
+        {/* Toggle button */}
+        <button
+          onClick={() => toggleDetails(index)}
+          className="w-full px-5 py-3 text-sm font-medium text-green-600 hover:text-green-800 flex items-center justify-between border-t border-gray-100 transition-colors"
+        >
+          <span>
+            {expandedItem === index ? 'Hide visualization' : 'Show visualization'}
+          </span>
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            className={`h-4 w-4 transition-transform ${expandedItem === index ? 'rotate-180' : ''}`}
+            viewBox="0 0 20 20" 
+            fill="currentColor"
+          >
+            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+        </button>
+
+        {/* Chart container */}
+        <div 
+          className={`transition-all duration-300 ease-in-out overflow-hidden ${
+            expandedItem === index ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          <div className="p-5 pt-0">
+            <Chart data={item} />
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
           ) : (
             <div className="text-center py-12">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
