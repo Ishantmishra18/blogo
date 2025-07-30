@@ -1,27 +1,29 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from './navbar';
+import { useTheme } from '../Context/themeContext';
 
 const Homepage = () => {
+  const { isDark } = useTheme();
 
+  const features = [
+    { main: 'Advanced Analytics', sub: 'Get automatic statistical analysis, trend detection, and predictive insights from your spreadsheet data.' },
+    { main: 'Beautiful Visualizations', sub: 'Transform rows of data into interactive charts and graphs that make patterns instantly visible.' },
+    { main: 'Secure Processing', sub: 'Your data is encrypted during upload and processing. We never store your files longer than necessary.' }
+  ];
 
-const features = [
-  { main: 'Advanced Analytics ', sub: 'Get automatic statistical analysis, trend detection, and predictive insights from your spreadsheet data.' },
-  { main: 'Beautiful Visualizations', sub: 'Transform rows of data into interactive charts and graphs that make patterns instantly visible.' },
-  { main: 'Secure Processing', sub: 'Your data is encrypted during upload and processing. We never store your files longer than necessary.' }
-];
   return (
     <>
       <Navbar />
       
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
+      <div className={`min-h-screen pt-[12vh] ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
         {/* Hero Section */}
-        <section className="py-20 px-12 h-[88vh] flex">
-          <div className=" cont w-[60vw]">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+        <section className={`py-20 px-12 h-[88vh] flex ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <div className="cont w-[60vw]">
+            <h1 className={`text-4xl md:text-6xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               Transform Your <span className="text-green-600">Excel Data</span> Into Insights
             </h1>
-            <p className="text-xl text-gray-600">
+            <p className={`text-xl ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               Upload your spreadsheets and get powerful visualizations, trend analysis, and data summaries in seconds.
             </p>
             <Link 
@@ -39,28 +41,34 @@ const features = [
           </div>
         </section>
 
-
         {/* Features Section */}
-        <section className="py-16 bg-white">
+        <section className={`py-16 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Powerful Features</h2>
+            <h2 className={`text-3xl font-bold text-center mb-12 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Powerful Features
+            </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Feature 1 */}
               {features.map((feature, index) => (
-              <div key={index} className="bg-green-50 duration-200 hover:translate-y-2 p-8 rounded-xl border border-green-100 hover:border-green-300 transition-all">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.main}</h3>
-                <p className="text-gray-600">
-                  {feature.sub}
-                </p>
+                <div 
+                  key={index} 
+                  className={`p-8 rounded-xl border transition-all duration-200 hover:translate-y-2 ${
+                    isDark 
+                      ? 'bg-gray-700 border-gray-600 hover:border-green-400' 
+                      : 'bg-green-50 border-green-100 hover:border-green-300'
+                  }`}
+                >
+                  <h3 className={`text-xl font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {feature.main}
+                  </h3>
+                  <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+                    {feature.sub}
+                  </p>
                 </div>
               ))}
-              
             </div>
           </div>
         </section>
-
-        
       </div>
     </>
   );

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Upload from './Components/upload';
-import Dashboard from './Components/dashboard';
 import HomePage from './Components/homepage';
 import { UserProvider } from './Context/userContext';
 import { RouterProvider, Route , Router , createBrowserRouter } from 'react-router-dom';

@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
+import { useTheme } from '../Context/themeContext';
 
 const Chart3D = ({ data, type = 'pie', title }) => {
+  const { isDark } = useTheme();
   const [hovered, setHovered] = useState(null);
   const [activeChart, setActiveChart] = useState(type);
 
@@ -20,20 +22,34 @@ const Chart3D = ({ data, type = 'pie', title }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 mb-8">
+    <div className={`rounded-xl shadow-lg overflow-hidden border ${
+      isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
+    } mb-8`}>
       {/* Header with chart selector */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-gray-50 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2 sm:mb-0">{title}</h3>
+      <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border-b ${
+        isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+      }`}>
+        <h3 className={`text-lg font-semibold ${
+          isDark ? 'text-white' : 'text-gray-800'
+        } mb-2 sm:mb-0`}>
+          {title}
+        </h3>
         
-        <div className="flex space-x-2 bg-gray-100 p-1 rounded-lg">
+        <div className={`flex space-x-2 p-1 rounded-lg ${
+          isDark ? 'bg-gray-600' : 'bg-gray-100'
+        }`}>
           {['pie', 'bar', 'line'].map((chartType) => (
             <button
               key={chartType}
               onClick={() => setActiveChart(chartType)}
               className={`px-3 py-1 text-sm rounded-md transition-colors ${
                 activeChart === chartType 
-                  ? 'bg-white shadow-sm text-indigo-600 font-medium' 
-                  : 'text-gray-600 hover:text-gray-800'
+                  ? isDark 
+                    ? 'bg-gray-800 shadow-sm text-indigo-400 font-medium' 
+                    : 'bg-white shadow-sm text-indigo-600 font-medium'
+                  : isDark 
+                    ? 'text-gray-300 hover:text-white' 
+                    : 'text-gray-600 hover:text-gray-800'
               }`}
             >
               {chartType.charAt(0).toUpperCase() + chartType.slice(1)}
@@ -43,14 +59,20 @@ const Chart3D = ({ data, type = 'pie', title }) => {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-3 px-4 py-3 border-b border-gray-200">
+      <div className={`flex flex-wrap gap-3 px-4 py-3 border-b ${
+        isDark ? 'border-gray-600' : 'border-gray-200'
+      }`}>
         {chartData.labels.map((label, i) => (
           <div key={i} className="flex items-center">
             <span 
               className="w-3 h-3 rounded-full mr-2" 
               style={{ backgroundColor: chartData.colors[i] }}
             />
-            <span className="text-sm text-gray-600">{label}</span>
+            <span className={`text-sm ${
+              isDark ? 'text-gray-300' : 'text-gray-600'
+            }`}>
+              {label}
+            </span>
           </div>
         ))}
       </div>
@@ -60,10 +82,11 @@ const Chart3D = ({ data, type = 'pie', title }) => {
         <Canvas camera={{ position: [0, 5, 10], fov: 50 }}>
           <ambientLight intensity={0.7} />
           <pointLight position={[10, 10, 10]} intensity={0.5} />
+          <color attach="background" args={isDark ? ['#111827'] : ['#ffffff']} />
           
-          {activeChart === 'pie' && <PieChart data={chartData} hovered={hovered} setHovered={setHovered} />}
-          {activeChart === 'bar' && <BarChart data={chartData} hovered={hovered} setHovered={setHovered} />}
-          {activeChart === 'line' && <LineChart data={chartData} hovered={hovered} setHovered={setHovered} />}
+          {activeChart === 'pie' && <PieChart data={chartData} hovered={hovered} setHovered={setHovered} isDark={isDark} />}
+          {activeChart === 'bar' && <BarChart data={chartData} hovered={hovered} setHovered={setHovered} isDark={isDark} />}
+          {activeChart === 'line' && <LineChart data={chartData} hovered={hovered} setHovered={setHovered} isDark={isDark} />}
           
           <OrbitControls 
             enableZoom={true}
@@ -75,21 +98,33 @@ const Chart3D = ({ data, type = 'pie', title }) => {
       </div>
 
       {/* Info Panel */}
-      <div className="p-4 bg-gray-50 border-t border-gray-200">
+      <div className={`p-4 border-t ${
+        isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+      }`}>
         {hovered !== null ? (
           <div className="flex justify-between items-center">
             <div>
-              <h4 className="font-medium text-gray-800">{chartData.labels[hovered]}</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className={`font-medium ${
+                isDark ? 'text-white' : 'text-gray-800'
+              }`}>
+                {chartData.labels[hovered]}
+              </h4>
+              <p className={`text-sm ${
+                isDark ? 'text-gray-300' : 'text-gray-600'
+              }`}>
                 Value: <span className="font-medium">{chartData.values[hovered]}</span>
               </p>
             </div>
-            <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs font-medium rounded-full">
+            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+              isDark ? 'bg-indigo-900 text-indigo-200' : 'bg-indigo-100 text-indigo-800'
+            }`}>
               {Math.round(chartData.values[hovered]/chartData.values.reduce((a,b)=>a+b,0)*100)}%
             </span>
           </div>
         ) : (
-          <p className="text-sm text-gray-500 text-center">
+          <p className={`text-sm text-center ${
+            isDark ? 'text-gray-400' : 'text-gray-500'
+          }`}>
             Hover over elements for details
           </p>
         )}
@@ -98,8 +133,8 @@ const Chart3D = ({ data, type = 'pie', title }) => {
   );
 };
 
-// Enhanced Pie Chart
-const PieChart = ({ data, hovered, setHovered }) => {
+// Enhanced Pie Chart with dark mode support
+const PieChart = ({ data, hovered, setHovered, isDark }) => {
   const groupRef = React.useRef();
   const total = data.values.reduce((a, b) => a + b, 0);
   
@@ -140,7 +175,7 @@ const PieChart = ({ data, hovered, setHovered }) => {
                 Math.sin(startAngle + angle/2) * 4.5
               ]}
               fontSize={0.5}
-              color="black"
+              color={isDark ? 'white' : 'black'}
               anchorX="center"
               anchorY="middle"
               visible={isHovered}
@@ -154,8 +189,8 @@ const PieChart = ({ data, hovered, setHovered }) => {
   );
 };
 
-// Enhanced Bar Chart
-const BarChart = ({ data, hovered, setHovered }) => {
+// Enhanced Bar Chart with dark mode support
+const BarChart = ({ data, hovered, setHovered, isDark }) => {
   const maxValue = Math.max(...data.values);
   
   return (
@@ -185,7 +220,7 @@ const BarChart = ({ data, hovered, setHovered }) => {
             <Text
               position={[x, height + 0.5, 0]}
               fontSize={0.6}
-              color="black"
+              color={isDark ? 'white' : 'black'}
               anchorX="center"
               anchorY="bottom"
               visible={isHovered}
@@ -199,8 +234,8 @@ const BarChart = ({ data, hovered, setHovered }) => {
   );
 };
 
-// Enhanced Line Chart
-const LineChart = ({ data, hovered, setHovered }) => {
+// Enhanced Line Chart with dark mode support
+const LineChart = ({ data, hovered, setHovered, isDark }) => {
   const maxValue = Math.max(...data.values);
   const points = data.values.map((value, i) => {
     const x = i * 2.5 - (data.values.length - 1) * 1.25;
@@ -244,7 +279,7 @@ const LineChart = ({ data, hovered, setHovered }) => {
             <Text
               position={[point.x, point.y + 0.7, 0]}
               fontSize={0.6}
-              color="black"
+              color={isDark ? 'white' : 'black'}
               anchorX="center"
               anchorY="bottom"
               visible={isHovered}
@@ -259,6 +294,7 @@ const LineChart = ({ data, hovered, setHovered }) => {
 };
 
 const DataVisualizationDashboard = () => {
+  const { isDark } = useTheme();
   const salesData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
     values: [45, 60, 35, 55, 70],
@@ -272,8 +308,14 @@ const DataVisualizationDashboard = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-4">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">3D Data Visualization</h2>
+    <div className={`max-w-6xl mx-auto p-4 ${
+      isDark ? 'bg-gray-900' : 'bg-white'
+    }`}>
+      <h2 className={`text-2xl font-bold mb-6 ${
+        isDark ? 'text-white' : 'text-gray-800'
+      }`}>
+        3D Data Visualization
+      </h2>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Chart3D 

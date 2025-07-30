@@ -3,8 +3,12 @@ import { FiUpload, FiFile, FiBarChart2, FiPieChart } from "react-icons/fi";
 import api from "../utils/api";
 import Chart from './chart';
 import * as XLSX from 'xlsx';
+import { useUser } from "../Context/userContext";
+import { useTheme } from "../Context/themeContext";
 
 export default function UploadPage() {
+  const { user } = useUser();
+  const { isDark } = useTheme();
   const [file, setFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -12,7 +16,7 @@ export default function UploadPage() {
   const [previewData, setPreviewData] = useState([]);
   const [title, setTitle] = useState("");
   const [titleError, setTitleError] = useState("");
-
+  
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile && (
@@ -49,7 +53,12 @@ export default function UploadPage() {
     if (!title.trim()) {
       setTitleError("Please enter a title for your chart");
       return;
-    } else {
+    }
+    else if (user?.history.includes(title)) {
+      setTitleError("Title must be unique");
+      return;
+    }
+     else {
       setTitleError("");
     }
     
@@ -78,20 +87,22 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className={`min-h-screen pt-[16vh] pb-28 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+          <h1 className={`text-3xl font-extrabold sm:text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Excel Data Visualizer
           </h1>
-          <p className="mt-3 text-xl text-gray-500">
+          <p className={`mt-3 text-xl ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
             Upload your spreadsheet and get beautiful charts instantly
           </p>
         </div>
 
         {/* Upload Card */}
-        <div className="bg-white shadow-xl mx-auto max-w-4xl rounded-lg overflow-hidden">
+        <div className={`shadow-xl mx-auto max-w-4xl rounded-lg overflow-hidden ${
+          isDark ? 'bg-gray-800' : 'bg-white'
+        }`}>
           <div className="p-6 sm:p-8">
             <form onSubmit={handleSubmit}>
               <div className="space-y-8">
@@ -99,16 +110,26 @@ export default function UploadPage() {
                 <div
                   className={`border-2 border-dashed rounded-xl p-10 text-center transition-all ${
                     file
-                      ? "border-green-500 bg-green-50"
-                      : "border-gray-300 hover:border-blue-500"
+                      ? isDark 
+                        ? "border-green-400 bg-gray-700" 
+                        : "border-green-500 bg-green-50"
+                      : isDark 
+                        ? "border-gray-600 hover:border-blue-400" 
+                        : "border-gray-300 hover:border-blue-500"
                   }`}
                 >
                   <div className="flex flex-col items-center justify-center space-y-3">
-                    <FiUpload className="h-12 w-12 text-gray-400" />
-                    <div className="flex text-sm text-gray-600">
+                    <FiUpload className={`h-12 w-12 ${
+                      isDark ? 'text-gray-400' : 'text-gray-400'
+                    }`} />
+                    <div className={`flex text-sm ${
+                      isDark ? 'text-gray-300' : 'text-gray-600'
+                    }`}>
                       <label
                         htmlFor="file-upload"
-                        className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none"
+                        className={`relative cursor-pointer rounded-md font-medium ${
+                          isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500'
+                        } focus-within:outline-none`}
                       >
                         <span>Upload an Excel file</span>
                         <input
@@ -122,14 +143,20 @@ export default function UploadPage() {
                       </label>
                       <p className="pl-1">or drag and drop</p>
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className={`text-xs ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
                       XLSX, XLS, or CSV up to 10MB
                     </p>
                     {file && (
-                      <div className="mt-4 flex items-center text-sm text-gray-900">
+                      <div className={`mt-4 flex items-center text-sm ${
+                        isDark ? 'text-gray-200' : 'text-gray-900'
+                      }`}>
                         <FiFile className="flex-shrink-0 mr-2 h-5 w-5" />
                         <span className="truncate">{file.name}</span>
-                        <span className="ml-2 text-gray-500">
+                        <span className={`ml-2 ${
+                          isDark ? 'text-gray-400' : 'text-gray-500'
+                        }`}>
                           {(file.size / 1024 / 1024).toFixed(2)} MB
                         </span>
                       </div>
@@ -139,7 +166,9 @@ export default function UploadPage() {
 
                 {/* Title Input */}
                 <div className="space-y-2">
-                  <label htmlFor="chart-title" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="chart-title" className={`block text-sm font-medium ${
+                    isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Chart Title *
                   </label>
                   <input
@@ -147,21 +176,29 @@ export default function UploadPage() {
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className={`block w-full px-4 py-2 rounded-md border ${
-                      titleError ? "border-red-300" : "border-gray-300"
-                    } shadow-sm focus:ring-blue-500 focus:border-blue-500`}
+                    className={`block w-full px-4 py-2 rounded-md border shadow-sm focus:ring-2 focus:ring-offset-2 ${
+                      titleError 
+                        ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                        : isDark
+                          ? "border-gray-600 bg-gray-700 text-white focus:ring-blue-500 focus:border-blue-500"
+                          : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                    }`}
                     placeholder="Enter a title for your chart"
                   />
                   {titleError && (
-                    <p className="text-sm text-red-600">{titleError}</p>
+                    <p className="text-sm text-red-500">{titleError}</p>
                   )}
                 </div>
 
                 {error && (
-                  <div className="rounded-md bg-red-50 p-4">
+                  <div className={`rounded-md p-4 ${
+                    isDark ? 'bg-red-900' : 'bg-red-50'
+                  }`}>
                     <div className="flex">
                       <div className="ml-3">
-                        <h3 className="text-sm font-medium text-red-800">
+                        <h3 className={`text-sm font-medium ${
+                          isDark ? 'text-red-200' : 'text-red-800'
+                        }`}>
                           {error}
                         </h3>
                       </div>
@@ -172,31 +209,41 @@ export default function UploadPage() {
                 {/* Data Preview */}
                 {previewData.length > 0 && (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-medium text-gray-900">
+                    <h3 className={`text-lg font-medium ${
+                      isDark ? 'text-white' : 'text-gray-900'
+                    }`}>
                       Data Preview
                     </h3>
-                    <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+                    <div className={`overflow-x-auto shadow ring-1 rounded-lg ${
+                      isDark ? 'ring-gray-600' : 'ring-black ring-opacity-5'
+                    }`}>
                       <table className="min-w-full divide-y divide-gray-300">
-                        <thead className="bg-gray-50">
+                        <thead className={isDark ? 'bg-gray-700' : 'bg-gray-50'}>
                           <tr>
                             {previewData[0]?.map((header, idx) => (
                               <th
                                 key={idx}
                                 scope="col"
-                                className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                className={`px-3 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                                  isDark ? 'text-gray-300' : 'text-gray-500'
+                                }`}
                               >
                                 {header || `Column ${idx + 1}`}
                               </th>
                             ))}
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className={`divide-y ${
+                          isDark ? 'divide-gray-600 bg-gray-800' : 'divide-gray-200 bg-white'
+                        }`}>
                           {previewData.slice(1).map((row, rowIdx) => (
                             <tr key={rowIdx}>
                               {row.map((cell, cellIdx) => (
                                 <td
                                   key={cellIdx}
-                                  className="px-3 py-4 whitespace-nowrap text-sm text-gray-500"
+                                  className={`px-3 py-4 whitespace-nowrap text-sm ${
+                                    isDark ? 'text-gray-300' : 'text-gray-500'
+                                  }`}
                                 >
                                   {cell}
                                 </td>
@@ -216,7 +263,9 @@ export default function UploadPage() {
                     disabled={!file || isLoading || !title.trim()}
                     className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                       !file || isLoading || !title.trim()
-                        ? "bg-gray-400 cursor-not-allowed"
+                        ? isDark 
+                          ? "bg-gray-600 cursor-not-allowed" 
+                          : "bg-gray-400 cursor-not-allowed"
                         : "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
                     }`}
                   >

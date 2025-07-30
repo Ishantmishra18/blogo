@@ -61,6 +61,16 @@ export const logout = (req, res) => {
   res.status(200).json({ message: 'Logged out successfully' }); 
 };
 
+export const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.id; 
+    const user = await User.findByIdAndDelete(userId); 
+    const files = await File.deleteMany({ uploadedBy: userId });}
+  catch (error) {
+    console.error('Error deleting account:', error);
+    return res.status(500).json({ message: 'Server error' });
+  } 
+} 
 
 
 export const getMe = async (req, res) => {

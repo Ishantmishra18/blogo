@@ -87,6 +87,8 @@ const generateGraphData = (jsonData) => {
   };
 };
 
+
+
 // Main Controller
 export const uploadFile = asyncHandler(async (req, res) => {
   const { title } = req.body;
@@ -114,6 +116,10 @@ export const uploadFile = asyncHandler(async (req, res) => {
       url: fileUrl,
       uploadedBy: req.user?.id
     });
+
+    const user = await User.findById(req.user?.id);
+    user.history.push(file.title);
+    await user.save();
 
     // 5. Return response
     res.status(201).json({

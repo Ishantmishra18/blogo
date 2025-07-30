@@ -1,9 +1,11 @@
 import React from 'react'
+import { useTheme } from '../Context/themeContext';
 
 const confirmCard = ({text , onClick , close , name}) => {
+  const { isDark } = useTheme();
   return (
     <div className="w-screen h-screen fixed top-0 left-0 bg-black/50 flex items-center justify-center z-50">
-    <div className=' bg-white shadow-2xs shadow-gray-800 rounded-2xl p-8'>
+    <div className={`shadow-2xs shadow-gray-800 rounded-2xl p-8 ${isDark?'bg-gray-800 text-white':'bg-white '}`} >
         <h2>{text} </h2>
         <h2 className='text-xl'>{name}</h2>
         
