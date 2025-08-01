@@ -5,6 +5,7 @@ import Chart from './chart';
 import * as XLSX from 'xlsx';
 import { useUser } from "../Context/userContext";
 import { useTheme } from "../Context/themeContext";
+import Summary from './AIresponse';
 
 export default function UploadPage() {
   const { user } = useUser();
@@ -306,7 +307,9 @@ export default function UploadPage() {
           </div>
         </div>
 
-        {Object.keys(exData).length > 0 && <Chart data={exData} title={title} />}
+        {Object.keys(exData).length > 0 &&
+        <><Chart data={exData} title={title} />
+        <Summary data={exData}/></> }
       </div>
     </div>
   );

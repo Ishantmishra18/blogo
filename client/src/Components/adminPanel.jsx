@@ -1,14 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import api from '../utils/api';
+import { FiLock, FiUnlock, FiUsers, FiFile, FiChevronDown, FiChevronUp, FiSun, FiMoon } from 'react-icons/fi';
+import { useTheme } from '../Context/themeContext';
 
 const AdminPanel = () => {
   const [data, setData] = useState({ users: [], files: [] });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [access, setAccess] = useState(false);
+  const [pass, setPass] = useState('');
+  const [expandedUser, setExpandedUser] = useState(null);
+  const { isDark, toggleTheme } = useTheme();
+
+  const adminPass = 'admin';
 
   useEffect(() => {
     const fetchAdminData = async () => {
       try {
+        setLoading(true);
         const response = await api.get('/admin/data');
         setData(response.data.data);
       } catch (err) {
@@ -19,125 +28,228 @@ const AdminPanel = () => {
       }
     };
 
-    fetchAdminData();
-  }, []);
+    if (access) {
+      fetchAdminData();
+      alert("Welcome to Admin Panel");
+    }
+  }, [access]);
+
+  const handleCheck = (e) => {
+    e.preventDefault();
+    if (pass === adminPass) {
+      setAccess(true);
+      setPass('');
+    } else {
+      alert('Wrong password');
+    }
+  };
+
+  const toggleUserFiles = (userId) => {
+    setExpandedUser(expandedUser === userId ? null : userId);
+  };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-lg">Loading...</div>
+      <div className={`flex justify-center items-center h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className={`animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 ${isDark ? 'border-green-400' : 'border-green-600'}`}></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen">
-        <div className="text-red-500 mb-4">{error}</div>
-        <button 
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-        >
-          Retry
-        </button>
+      <div className={`flex flex-col justify-center items-center h-screen p-4 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className={`p-6 rounded-lg shadow-md max-w-md w-full text-center ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+          <div className="text-red-500 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <p className={`mt-2 font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>{error}</p>
+          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className={`px-4 py-2 ${isDark ? 'bg-green-600 hover:bg-green-700' : 'bg-green-500 hover:bg-green-600'} text-white rounded transition`}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!access) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className={`w-full max-w-md p-8 rounded-xl shadow-lg ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+          <div className="text-center mb-6">
+            <div className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full ${isDark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-600'}`}>
+              <FiLock className="h-6 w-6" />
+            </div>
+            <h2 className={`mt-3 text-xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Admin Portal</h2>
+            <p className={`mt-1 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Enter admin password to continue</p>
+          </div>
+          
+          <form onSubmit={handleCheck} className="space-y-4">
+            <div>
+              <label htmlFor="password" className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                value={pass}
+                onChange={(e) => setPass(e.target.value)}
+                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-opacity-50 transition ${
+                  isDark ? 'bg-gray-700 border-gray-600 focus:border-green-500 focus:ring-green-500 text-white' : 
+                  'bg-white border-gray-300 focus:border-green-500 focus:ring-green-500 text-gray-800'
+                }`}
+                placeholder="Enter admin password"
+                autoFocus
+              />
+            </div>
+            <button
+              type="submit"
+              className={`w-full py-3 px-4 rounded-lg font-medium transition duration-200 flex items-center justify-center ${
+                !pass ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+              } text-white`}
+              disabled={!pass}
+            >
+              <FiUnlock className="mr-2" />
+              Access Dashboard
+            </button>
+          </form>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
-      
-      {/* Summary Section */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <div className="flex-1 p-4 bg-gray-50 rounded-lg min-w-[200px]">
-          <h3 className="font-medium">Total Users</h3>
-          <p className="text-2xl mt-2">{data.users.length}</p>
+    <div className={`min-h-screen ${isDark ? 'bg-gray-900 text-gray-100' : 'bg-gray-50'}`}>
+      <div className="max-w-7xl mx-auto p-4 md:p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Admin Dashboard</h1>
+          <button
+            onClick={toggleTheme}
+            className={`p-2 rounded-full ${isDark ? 'bg-gray-700 text-yellow-300' : 'bg-gray-200 text-gray-700'}`}
+            aria-label="Toggle theme"
+          >
+            {isDark ? <FiSun className="h-5 w-5" /> : <FiMoon className="h-5 w-5" />}
+          </button>
         </div>
-        <div className="flex-1 p-4 bg-gray-50 rounded-lg min-w-[200px]">
-          <h3 className="font-medium">Total Files</h3>
-          <p className="text-2xl mt-2">{data.files.length}</p>
-        </div>
-      </div>
-
-      {/* All Files Section */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">All Files</h2>
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          {data.files.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left p-3">Title</th>
-                    <th className="text-left p-3">File Name</th>
-                    <th className="text-left p-3">Uploaded By</th>
-                    <th className="text-left p-3">Upload Date</th>
-                    <th className="text-left p-3">Type</th>
-                    <th className="text-left p-3">Size</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.files.map(file => (
-                    <tr key={file._id} className="border-b border-gray-200 hover:bg-gray-50">
-                      <td className="p-3">{file.title}</td>
-                      <td className="p-3">{file.uploadedBy.username}</td>
-                      <td className="p-3">{new Date(file.createdAt).toLocaleDateString()}</td>
-                      <td className="p-3">{file.fileType}</td>
-                      <td className="p-3">{(file.size / 1024).toFixed(2)} KB</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="py-6 text-center text-gray-500">
-              No files found
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Users Section */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">Users and Their Files</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {data.users.map(user => {
-            const userFiles = data.files.filter(file => file.uploadedBy._id === user._id);
-            
-            return (
-              <div key={user._id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition">
-                <div className="p-4 border-b border-gray-200">
-                  <h3 className="font-medium">{user.username}</h3>
-                  <p className="text-sm text-gray-600">{user.email}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Joined {new Date(user.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                
-                {userFiles.length > 0 ? (
-                  <div className="divide-y divide-gray-200">
-                    {userFiles.map(file => (
-                      <div key={file._id} className="p-3">
-                        <p className="font-medium">{file.title}</p>
-                        <div className="flex justify-between text-sm text-gray-600 mt-1">
-                          <span>{file.fileType}</span>
-                          <span>{(file.size / 1024).toFixed(2)} KB</span>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(file.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-4 text-center text-gray-500">
-                    No files uploaded
-                  </div>
-                )}
+        
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <div className={`p-4 rounded-lg shadow-sm ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="flex items-center">
+              <div className={`p-2 rounded-full ${isDark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-600'}`}>
+                <FiUsers className="h-5 w-5" />
               </div>
-            );
-          })}
+              <div className="ml-3">
+                <h3 className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Total Users</h3>
+                <p className={`text-2xl mt-1 font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{data.users.length}</p>
+              </div>
+            </div>
+          </div>
+          <div className={`p-4 rounded-lg shadow-sm ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="flex items-center">
+              <div className={`p-2 rounded-full ${isDark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-600'}`}>
+                <FiFile className="h-5 w-5" />
+              </div>
+              <div className="ml-3">
+                <h3 className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Total Files</h3>
+                <p className={`text-2xl mt-1 font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{data.files.length}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Users Section */}
+        <div className={`rounded-xl shadow-sm overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+          <div className={`p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+            <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Users</h2>
+          </div>
+          
+          <div className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
+            {data.users.map(user => {
+              const userFiles = data.files.filter(file => file.uploadedBy._id === user._id);
+              
+              return (
+                <div key={user._id} className={`${isDark ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} transition-colors`}>
+                  <div 
+                    className="p-4 flex justify-between items-center cursor-pointer"
+                    onClick={() => toggleUserFiles(user._id)}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className={`h-10 w-10 rounded-full flex items-center justify-center ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                        <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                          {user.username.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <h3 className={`font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>{user.username}</h3>
+                        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{user.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800'}`}>
+                        {userFiles.length} files
+                      </span>
+                      {expandedUser === user._id ? (
+                        <FiChevronUp className={`ml-3 h-5 w-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+                      ) : (
+                        <FiChevronDown className={`ml-3 h-5 w-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+                      )}
+                    </div>
+                  </div>
+                  
+                  {expandedUser === user._id && (
+                    <div className={`transition-all duration-300 ease-in-out ${isDark ? 'bg-gray-750' : 'bg-gray-50'}`}>
+                      <div className="px-4 pb-4">
+                        <h4 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Uploaded Files</h4>
+                        
+                        {userFiles.length > 0 ? (
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead>
+                                <tr className={`${isDark ? 'border-gray-700' : 'border-gray-200'} border-b`}>
+                                  <th className={`text-left p-3 font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Title</th>
+                                  <th className={`text-left p-3 font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Date</th>
+                                  <th className={`text-left p-3 font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Type</th>
+                                  <th className={`text-left p-3 font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Size</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {userFiles.map(file => (
+                                  <tr 
+                                    key={file._id} 
+                                    className={`${isDark ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'} border-b`}
+                                  >
+                                    <td className="p-3">{file.title}</td>
+                                    <td className="p-3">{new Date(file.createdAt).toLocaleDateString()}</td>
+                                    <td className="p-3">
+                                      <span className={`px-2 py-1 text-xs rounded-full ${isDark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-800'}`}>
+                                        {file.fileType}
+                                      </span>
+                                    </td>
+                                    <td className="p-3">{(file.size / 1024).toFixed(2)} KB</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <div className={`py-6 text-center ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <FiFile className="h-8 w-8 mx-auto opacity-50" />
+                            <p className="mt-2">No files uploaded</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

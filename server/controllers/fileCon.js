@@ -5,6 +5,7 @@ import XLSX from 'xlsx';
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import OpenAI from 'openai';
 
 // Helper: Validate Excel file structure
 const validateExcelFile = async (file) => {
@@ -109,7 +110,13 @@ export const uploadFile = asyncHandler(async (req, res) => {
     const fileUrl = await uploadToStorage(req.file);
 
     // 4. Save to database
-    const file = await File.create({
+    
+
+    const user = await User.findById(req.user?.id);
+    if (user) {
+       user.history.push(file.title);
+    await user.save();
+      const file = await File.create({
       title,
       summary,
       graphData,
@@ -117,16 +124,14 @@ export const uploadFile = asyncHandler(async (req, res) => {
       uploadedBy: req.user?.id
     });
 
-    const user = await User.findById(req.user?.id);
-    user.history.push(file.title);
-    await user.save();
+    }
+   
 
     // 5. Return response
     res.status(201).json({
       success: true,
       message: 'File processed successfully',
       data: {
-        fileId: file._id,
         downloadUrl: fileUrl,
         summary,
         graphData,
@@ -146,6 +151,112 @@ export const uploadFile = asyncHandler(async (req, res) => {
   }
 });
 
+
+
+
+import { HfInference } from '@huggingface/inference';
+const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+
+export const Summary = asyncHandler(async (req, res) => {
+  try {
+    // 1. Validate request body exists
+    if (!req.body) {
+      return res.status(400).json({
+        success: false,
+        message: 'No data received in request body',
+        expectedFormat: {
+          summary: { totalRows: Number, columnNames: Array, numericColumns: Object },
+          metadata: { headers: Array, rowCount: Number, sheetNames: Array },
+          graphData: { type: String, labels: Array, datasets: Array }
+        }
+      });
+    }
+
+    // 2. Destructure with proper fallbacks
+    const { 
+      summary = {}, 
+      metadata = {}, 
+      graphData = {} 
+    } = req.body;
+
+    // 3. Validate required fields with precise error messages
+    const requiredFields = {
+      'summary.totalRows': summary?.totalRows,
+      'metadata.headers': metadata?.headers,
+      'metadata.rowCount': metadata?.rowCount
+    };
+
+    
+    // 4. Prepare analysis data (using your actual data structure)
+    const analysisData = {
+      dimensions: `${summary.totalRows} rows × ${metadata.headers.length} columns`,
+      numericColumns: summary.numericColumns ? Object.keys(summary.numericColumns) : [],
+      graphType: graphData.type || 'none',
+      sheets: metadata.sheetNames || ['main'],
+      sampleColumns: metadata.headers.slice(0, 3) // First 3 columns for preview
+    };
+
+    // 5. Create optimized prompt
+    const prompt = `
+      Analyze this business dataset:
+      - Dimensions: ${analysisData.dimensions}
+      - Numeric Columns: ${analysisData.numericColumns.join(', ') || 'None'}
+      - Graph Type: ${analysisData.graphType}
+      - Sample Columns: ${analysisData.sampleColumns.join(', ')}
+
+      Provide a concise analysis covering:
+      1. Key dataset characteristics
+      2. Data quality considerations
+      3. Business insights from numeric fields
+      4. Recommended visualization approaches
+      5. Next steps for analysis
+
+      Response requirements:
+      - Use bullet points
+      - Limit to 250 words
+      - Focus on actionable insights
+    `;
+
+    // 6. Call Hugging Face API with timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+    const response = await hf.textGeneration({
+      model: 'mistralai/Mistral-7B-Instruct-v0.1',
+      inputs: prompt,
+      parameters: {
+        max_new_tokens: 500,
+        temperature: 0.3
+      },
+      signal: controller.signal
+    }).finally(() => clearTimeout(timeout));
+
+    // 7. Return formatted response
+    res.status(200).json({
+      success: true,
+      analysis: {
+        summary: response.generated_text.trim(),
+        metadata: analysisData
+      }
+    });
+
+  } catch (error) {
+    console.error('Analysis Error:', error);
+
+    // Handle specific error cases
+    const statusCode = error.name === 'AbortError' ? 504 : 500;
+    const message = error.name === 'AbortError' 
+      ? 'Analysis timed out (10s limit)' 
+      : 'Analysis service unavailable';
+
+    res.status(statusCode).json({
+      success: false,
+      message,
+      suggestion: 'Try again with a smaller dataset',
+
+    });
+  }
+});
 
 
 

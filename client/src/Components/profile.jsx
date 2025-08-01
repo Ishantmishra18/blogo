@@ -6,6 +6,8 @@ import Chart from './chart';
 import ConfirmCard from './confirmCard';
 import { useTheme } from '../Context/themeContext';
 import { IoSunny, IoMoon } from "react-icons/io5";
+import { IoHomeSharp } from "react-icons/io5";
+
 
 const Profile = () => {
   const { user, setUser } = useUser();
@@ -14,8 +16,9 @@ const Profile = () => {
   const navigate = useNavigate();
   const chartContainers = useRef([]);
   const [showConfirmation, setshow] = useState(false);
-  const [deleteId, setFileId] = useState({ id: '', title: '' });
+  const [ showDet , setShowDet ] = useState({text:'', title:'' ,delId:''});
   const { isDark , toggleTheme } = useTheme();
+  const [del , setDel] = useState('');
 
   const handleLogout = async () => {
     await api.post('/auth/logout');
@@ -27,6 +30,7 @@ const Profile = () => {
     try {   
       await api.delete('/auth/delete');
       setUser(null);
+      setShowDet(null)
       navigate('/login');
     } catch (error) {  
       console.error('Error deleting account:', error);
@@ -34,6 +38,9 @@ const Profile = () => {
   }
 
   const handleDel = async (id) => {
+    setshow(false);
+    setShowDet({text:'', title:'' ,delId:''});
+    setDel('');
     try { 
       await api.delete(`/files/delete/${id}`);
       setUserHistory(prevHistory => prevHistory.filter(item => item._id !== id));
@@ -70,50 +77,62 @@ const Profile = () => {
 
   return (
     <div className={`min-h-screen relative ${isDark ? 'bg-gray-900' : 'bg-gradient-to-b from-green-50 to-gray-50'}`}>
-      {showConfirmation && 
-        <ConfirmCard 
-          close={() => setshow(false)} 
-          onClick={() => handleDel(deleteId.id)} 
-          text={"Are you sure you want to delete this file?"} 
-          name={deleteId.title} 
-        />
+      {showConfirmation && (
+  <ConfirmCard 
+    close={() => setshow(false)}
+    onClick={() => {
+      if (del === 'file') {
+        handleDel(showDet.delId);
+      } else {
+        handleDelAccount();
       }
+      setshow(false);
+    }}
+    text={showDet.text} 
+    name={showDet.title} 
+  />
+)}
       
       {/* Header */}
-      <header className={`shadow-sm sticky z-40 top-0 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <Link 
-            to="/" 
-            className={`flex items-center px-4 py-2 rounded-3xl ${
-              isDark ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-            } transition-colors`}
-          >
-            Back to HomePage
-          </Link>
+     <header className={`shadow-sm sticky z-40 top-0 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+  <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4 sm:px-6 lg:px-8 flex justify-between items-center gap-3 sm:gap-0">
+    {/* Home Link - Full width on mobile, auto width on larger screens */}
+    <Link to='/' className={`flex items-center p-2 rounded-full text-lg font-semibold ${isDark ? 'text-white bg-gray-600' : 'text-gray-800 bg-gray-100'} transition-colors hover:text-green-600`}>
+     
+      <IoHomeSharp />
+    </Link>
 
-          <div className="flex gap-4">
-             <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-full ${isDark ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} transition-colors`}
-              aria-label="Toggle theme"
-                     >
-              {isDark ? <IoSunny className="w-5 h-5" /> : <IoMoon className="w-5 h-5" />}
-            </button>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 text-white rounded-lg cursor-pointer shadow-md bg-green-600 hover:bg-green-700"
-            >
-              Logout
-            </button>
-            <button
-              className="px-4 py-2 bg-red-600 text-white cursor-pointer rounded-lg hover:bg-red-700 transition-all shadow-md flex items-center"
-              onClick={handleDelAccount}
-            >
-              Delete account
-            </button>
-          </div>
-        </div>
-      </header>
+    {/* Button Group - Stacked on mobile, inline on larger screens */}
+    <div className="flex gap-2 sm:gap-4 w-full sm:w-auto">
+      {/* Theme Toggle - Centered on mobile */}
+      <button
+        onClick={toggleTheme}
+        className={`p-2 rounded-full mx-auto sm:mx-0 ${
+          isDark ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+        } transition-colors`}
+        aria-label="Toggle theme"
+      >
+        {isDark ? <IoSunny className="w-5 h-5" /> : <IoMoon className="w-5 h-5" />}
+      </button>
+
+      {/* Action Buttons - Full width on mobile, auto width on larger screens */}
+      <div className="flex gap-2 sm:gap-4">
+        <button
+          onClick={handleLogout}
+          className="px-3  py-2 text-sm sm:text-base text-white rounded-lg cursor-pointer shadow-md bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+        >
+          Logout
+        </button>
+        <button
+          className="px-3 py-2 text-sm whitespace-nowrap sm:text-base bg-red-600 text-white cursor-pointer rounded-lg hover:bg-red-700 transition-all shadow-md flex items-center justify-center w-full sm:w-auto"
+          onClick={() => setshow(true) & setShowDet({ delId: user._id, title:user.username , text:'are you sure you want to delete you account' , fun:()=>handleDelAccount })}
+        >
+          Delete account
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -129,7 +148,7 @@ const Profile = () => {
                 <span className={`text-3xl font-bold ${
                   isDark ? 'text-gray-300' : 'text-green-800'
                 }`}>
-                  {user?.name?.charAt(0) || 'U'}
+                  {user?.username?.charAt(0) || 'U'}
                 </span>
               </div>
               <div>
@@ -163,7 +182,7 @@ const Profile = () => {
         </div>
 
         {/* Upload History */}
-        <div className={`rounded-xl shadow-lg p-6 border ${
+        <div className={`rounded-xl shadow-lg md:p-6 p-2 border ${
           isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
         }`}>
           <div className="flex justify-between items-center mb-6">
@@ -192,7 +211,7 @@ const Profile = () => {
                   }`}
                 >
                   {/* File header with delete button */}
-                  <div className="flex justify-between items-start p-5">
+                  <div className="flex justify-between items-start md:p-5 p-2">
                     <div className="flex items-start space-x-3">
                       <div className={`p-2 rounded-lg ${
                         isDark ? 'bg-gray-600' : 'bg-green-50'
@@ -222,7 +241,7 @@ const Profile = () => {
                     
                     {/* Modern delete button */}
                     <button 
-                      onClick={() => setshow(true) & setFileId({ id: item._id, title: item.title })}
+                      onClick={() => setshow(true) & setShowDet({ delId: item._id, title: item.title , text:'are you sure you want to delete this file'}) & setDel('file')}
                       className={`cursor-pointer p-1 rounded-full hover:bg-opacity-20 transition-colors ${
                         isDark ? 'text-gray-400 hover:text-red-400 hover:bg-red-900' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
                       }`}
