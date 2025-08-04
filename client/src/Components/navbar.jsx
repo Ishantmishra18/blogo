@@ -17,7 +17,7 @@ const Navbar = () => {
         {/* Left side - Logo */}
         <div className="flex-shrink-0">
           <Link to="/" className={`text-xl font-bold flex items-center gap-1 ${isDark ? 'text-green-400' : 'text-green-600'}`}>
-            <GiPieChart /> Exanaly
+            <GiPieChart /> Exanaly 
           </Link>
         </div>
 

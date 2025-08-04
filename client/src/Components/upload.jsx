@@ -72,8 +72,8 @@ export default function UploadPage() {
     try {
       const formData = new FormData();
       formData.append("excelFile", file);
-      formData.append("title", title); 
-
+      formData.append("title", title);
+       formData.append("fileSize", Math.round(file.size / 1024)); 
       const uploadRes = await api.post("/files/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -92,10 +92,10 @@ export default function UploadPage() {
       <div className="mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className={`text-3xl font-extrabold sm:text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <h1 className={`text-2xl font-extrabold sm:text-4xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
             Excel Data Visualizer
           </h1>
-          <p className={`mt-3 text-xl ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
+          <p className={`mt-1 text-sm ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
             Upload your spreadsheet and get beautiful charts instantly
           </p>
         </div>

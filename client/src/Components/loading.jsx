@@ -3,7 +3,7 @@ import { Spin } from 'antd';
 
 const Loading = () => {
   return (
-    <div className="fixed inset-0 bg-black/10 flex items-center justify-center z-50 backdrop-blur-sm">
+    <div className="absolute inset-0 bg-black/10 flex items-center justify-center z-50 backdrop-blur-sm">
       <Spin 
         size="large"
         className="custom-spin"

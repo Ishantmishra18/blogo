@@ -11,11 +11,11 @@ const fileSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
       default: null
     },
+    size:Number,
     url: String,
     uploadedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: [true, 'Uploader user ID is required']
     },
   },
   {

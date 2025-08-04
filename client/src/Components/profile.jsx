@@ -7,6 +7,7 @@ import ConfirmCard from './confirmCard';
 import { useTheme } from '../Context/themeContext';
 import { IoSunny, IoMoon } from "react-icons/io5";
 import { IoHomeSharp } from "react-icons/io5";
+import { sortedArray } from 'three/src/animation/AnimationUtils.js';
 
 
 const Profile = () => {
@@ -19,6 +20,7 @@ const Profile = () => {
   const [ showDet , setShowDet ] = useState({text:'', title:'' ,delId:''});
   const { isDark , toggleTheme } = useTheme();
   const [del , setDel] = useState('');
+  const [sortKey, setSortKey] = useState('time');
 
   const handleLogout = async () => {
     await api.post('/auth/logout');
@@ -74,6 +76,26 @@ const Profile = () => {
       }, 300); 
     }
   };
+
+const sortData = (data, key) => {
+  return [...data].sort((a, b) => {
+    if (key === 'aphabet') {
+      return a.title.localeCompare(b.title);
+    } else if (key === 'size') {
+      return a.size - b.size;
+    } else if (key === 'time') {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+    return 0;
+  });
+};
+
+useEffect(() => {
+  if (userHistory.length > 0) {
+    const sortedHistory = sortData(userHistory, sortKey);
+    setUserHistory(sortedHistory);
+  }
+}, [sortKey]);
 
   return (
     <div className={`min-h-screen relative ${isDark ? 'bg-gray-900' : 'bg-gradient-to-b from-green-50 to-gray-50'}`}>
@@ -191,6 +213,12 @@ const Profile = () => {
             }`}>
               Your Upload History
             </h2>
+            <div className="flex gap-5">
+            <select name="" value={sortKey} onChange={(e)=>setSortKey(e.target.value)} id="" className={`p-2 rounded-lg bg-gray-100 `}>
+              <option value="aphabet">by Alphabet</option>
+              <option value="size">by Size</option>
+              <option value="time">by Time</option>
+            </select>
             
             <div className="flex items-center space-x-4">
               <span className={`text-sm ${
@@ -198,6 +226,7 @@ const Profile = () => {
               }`}>
                 {userHistory.length} {userHistory.length === 1 ? 'file' : 'files'}
               </span>
+            </div>
             </div>
           </div>
           
@@ -263,7 +292,7 @@ const Profile = () => {
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       isDark ? 'bg-gray-600 text-gray-200' : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {item.rows} rows
+                      {item.summary.totalRows} rows
                     </span>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       item.status === 'Processed' ? 
