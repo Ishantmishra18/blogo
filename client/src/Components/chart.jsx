@@ -1,185 +1,127 @@
 import React, { useRef, useState } from 'react';
-import { Bar, Pie, Scatter } from 'react-chartjs-2';
-import { Chart as ChartJS } from 'chart.js/auto';
 import html2canvas from 'html2canvas';
+import Chart2D from './Charts/2D';
+import Chart3D from './Charts/3D';
+import { useTheme } from '../Context/themeContext';
 
-const SimpleDataViz = ({ data }) => {
-  const [chartType, setChartType] = useState('bar');
-  const chartRef = useRef(null);
+const InsightsDashboard = ({ data }) => {
+  const chartRef = useRef();
+  const { summary, graphData } = data;
+  const { isDark } = useTheme();
   
-  // Prepare chart data based on type
-  const getChartData = () => {
-    if (!data || !data.labels || !data.values) {
-      return { labels: [], datasets: [] };
-    }
+  // State for chart type selection
+  const [chartType, setChartType] = useState('line');
+  const [show3D, setShow3D] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-    switch(chartType) {
-      case 'pie':
-        return {
-          labels: data.labels,
-          datasets: [{
-            data: data.values,
-            backgroundColor: [
-              '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-              '#FF9F40', '#8AC24A', '#F06292', '#7986CB', '#A1887F'
-            ],
-            borderWidth: 1
-          }]
-        };
-      
-      case 'scatter':
-        return {
-          datasets: [{
-            label: 'Data Points',
-            data: data.labels.map((label, i) => ({
-              x: i,
-              y: data.values[i]
-            })),
-            backgroundColor: '#36A2EB',
-            pointRadius: 6
-          }]
-        };
-      
-      case 'bar3d':
-      case 'bar':
-      default:
-        return {
-          labels: data.labels,
-          datasets: [{
-            label: 'Values',
-            data: data.values,
-            backgroundColor: '#36A2EB',
-            borderColor: '#36A2EB',
-            borderWidth: 1
-          }]
-        };
-    }
-  };
-
-  // Basic 3D effect for bar chart
-  const render3DChart = () => {
-    const chartData = getChartData();
-    return (
-      <div className="relative">
-        <Bar 
-          data={chartData} 
-          options={{
-            plugins: {
-              legend: { display: false }
-            },
-            scales: {
-              y: { beginAtZero: true }
-            }
-          }} 
-        />
-        <div className="absolute inset-0 pointer-events-none">
-          {chartData.labels.map((_, i) => (
-            <div 
-              key={i}
-              className="absolute bottom-0 bg-blue-700 opacity-20"
-              style={{
-                left: `${(i / chartData.labels.length) * 100}%`,
-                width: `${80 / chartData.labels.length}%`,
-                height: '100%',
-                transform: 'translateX(10%) skewX(-15deg)'
-              }}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  };
+  // Available chart types
+  const chartTypes = [
+    { value: 'line', label: 'Line Chart' },
+    { value: 'bar', label: 'Bar Chart' },
+    { value: 'pie', label: 'Pie Chart' },
+    { value: 'doughnut', label: 'Doughnut Chart' },
+    { value: 'radar', label: 'Radar Chart' },
+    { value: 'polarArea', label: 'Polar Area' }
+  ];
 
   const downloadChart = async () => {
-    if (!chartRef.current) return;
-    
-    const canvas = await html2canvas(chartRef.current);
-    const link = document.createElement('a');
-    link.download = `chart-${chartType}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+    try {
+      setIsLoading(true);
+      const canvas = await html2canvas(chartRef.current, {
+        scale: 2, // Higher quality
+        logging: false,
+        useCORS: true,
+      });
+      const link = document.createElement('a');
+      link.download = `insight-${chartType}-${new Date().toISOString().slice(0,10)}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error('Error downloading chart:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">{data?.title || 'Data Visualization'}</h3>
-        <div className="flex gap-2">
-          <select
-            value={chartType}
-            onChange={(e) => setChartType(e.target.value)}
-            className="px-3 py-1 border rounded-md text-sm"
+    <div className="p-6 space-y-6 max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-800">Excel Data Insights</h1>
+        <div className="flex space-x-2">
+          <button 
+            onClick={() => setShow3D(!show3D)}
+            className={`px-4 py-2 rounded-md ${show3D ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700'}`}
           >
-            <option value="bar">Bar Chart</option>
-            <option value="bar3d">3D Bar</option>
-            <option value="pie">Pie Chart</option>
-            <option value="scatter">Scatter Plot</option>
-          </select>
-          <button
+            {show3D ? 'Show 2D Charts' : 'Show 3D Charts'}
+          </button>
+          <button 
             onClick={downloadChart}
-            className="px-3 py-1 bg-blue-500 text-white rounded-md text-sm"
+            disabled={isLoading}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center"
           >
-            Download
+            {isLoading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Downloading...
+              </>
+            ) : 'Download Chart'}
           </button>
         </div>
       </div>
 
-      <div className="h-64 w-full" ref={chartRef}>
-        {chartType === 'bar' && (
-          <Bar 
-            data={getChartData()} 
-            options={{
-              responsive: true,
-              maintainAspectRatio: false
-            }}
-          />
-        )}
-        
-        {chartType === 'bar3d' && render3DChart()}
-        
-        {chartType === 'pie' && (
-          <Pie 
-            data={getChartData()} 
-            options={{
-              responsive: true,
-              maintainAspectRatio: false
-            }}
-          />
-        )}
-        
-        {chartType === 'scatter' && (
-          <Scatter 
-            data={getChartData()} 
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                x: {
-                  type: 'linear',
-                  position: 'bottom'
-                }
-              }
-            }}
-          />
-        )}
+      {/* Data Summary */}
+      <div className="bg-white rounded-xl p-6 shadow-md">
+        <h2 className="text-lg font-semibold mb-4">Dataset Summary</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p className="font-medium">Total Rows: <span className="font-normal">{summary.totalRows}</span></p>
+            <p className="font-medium">Numeric Columns: <span className="font-normal">{Object.keys(summary.numericColumns).length}</span></p>
+          </div>
+        </div>
+      </div>
+
+      {/* Chart Selection */}
+      {!show3D && (
+        <div className="bg-white rounded-xl p-4 shadow-md">
+          <div className="flex flex-wrap gap-2 mb-4">
+            {chartTypes.map((type) => (
+              <button
+                key={type.value}
+                onClick={() => setChartType(type.value)}
+                className={`px-3 py-1 rounded-md text-sm ${chartType === type.value 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              >
+                {type.label}
+              </button>
+            ))}
+          </div>
+          <div ref={chartRef} className="h-96 w-full">
+            <Chart2D chartData={graphData} chartType={chartType} />
+          </div>
+        </div>
+      )}
+
+      {/* 3D Chart Section */}
+      {show3D && (
+        <div className="bg-white rounded-xl p-4 shadow-md">
+          <h2 className="text-lg font-semibold mb-4">3D Visualization</h2>
+          <div className="h-[500px] w-full">
+            <Chart3D chartData={graphData} />
+          </div>
+        </div>
+      )}
+
+      {/* Help Text */}
+      <div className="text-sm text-gray-500">
+        <p>Tip: Click and drag to rotate 3D charts. Use mouse wheel to zoom in/out.</p>
       </div>
     </div>
   );
 };
 
-// Example usage:
-const DataDashboard = () => {
-  const salesData = {
-    title: "Monthly Sales",
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-    values: [65, 59, 80, 81, 56]
-  };
-
-  return (
-    <div className="max-w-3xl mx-auto p-4">
-      <SimpleDataViz data={salesData} />
-    </div>
-  );
-};
-
-export default DataDashboard;
+export default InsightsDashboard;

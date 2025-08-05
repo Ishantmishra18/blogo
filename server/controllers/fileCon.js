@@ -55,7 +55,7 @@ const generateSummary = (jsonData) => {
   const allHeaders = Object.keys(jsonData[0] || {});
 
   allHeaders.forEach(header => {
-    const values = jsonData.map(row => row[header]).filter(val => !isNaN(val));
+    const values = jsonData.map(row => row[header]).filter(val => typeof val === 'number' && !isNaN(val));
     if (values.length > 0) {
       numericColumns[header] = {
         average: values.reduce((a, b) => a + b, 0) / values.length,
@@ -83,7 +83,10 @@ const generateGraphData = (jsonData) => {
     labels: jsonData.map(row => row[headers[0]]),
     datasets: [{
       label: headers[1],
-      data: jsonData.map(row => row[headers[1]] || 0)
+      data: jsonData.map(row =>{ 
+        const value = row[headers[1]];
+        return typeof value === 'number' ? value : 0; // Ensure numeric data
+      })
     }]
   };
 };

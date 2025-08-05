@@ -95,7 +95,7 @@ useEffect(() => {
     const sortedHistory = sortData(userHistory, sortKey);
     setUserHistory(sortedHistory);
   }
-}, [sortKey]);
+}, [sortKey , userHistory]);
 
   return (
     <div className={`min-h-screen relative ${isDark ? 'bg-gray-900' : 'bg-gradient-to-b from-green-50 to-gray-50'}`}>
@@ -214,11 +214,23 @@ useEffect(() => {
               Your Upload History
             </h2>
             <div className="flex gap-5">
-            <select name="" value={sortKey} onChange={(e)=>setSortKey(e.target.value)} id="" className={`p-2 rounded-lg bg-gray-100 `}>
-              <option value="aphabet">by Alphabet</option>
-              <option value="size">by Size</option>
-              <option value="time">by Time</option>
-            </select>
+           <select 
+            value={sortKey} 
+            onChange={(e) => setSortKey(e.target.value)}
+            className={`
+              p-2 rounded-lg border transition-colors
+              ${isDark ? 
+                'bg-gray-700 border-gray-600 text-white hover:bg-gray-600' : 
+                'bg-white border-gray-300 text-gray-800 hover:bg-gray-50'
+              }
+              focus:outline-none focus:ring-2 
+              ${isDark ? 'focus:ring-blue-500' : 'focus:ring-blue-300'}
+            `}
+          >
+            <option value="alphabet">by Alphabet</option>
+            <option value="size">by Size</option>
+            <option value="time">by Time</option>
+          </select>
             
             <div className="flex items-center space-x-4">
               <span className={`text-sm ${

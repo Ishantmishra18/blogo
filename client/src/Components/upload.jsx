@@ -309,7 +309,8 @@ export default function UploadPage() {
 
         {Object.keys(exData).length > 0 &&
         <><Chart data={exData} title={title} />
-        <Summary data={exData}/></> }
+        <Summary data={exData}/>
+        </> }
       </div>
     </div>
   );
