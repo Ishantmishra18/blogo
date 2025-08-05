@@ -44,14 +44,18 @@ const InsightsDashboard = ({ data }) => {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
+    <div className={`p-6 space-y-6 max-w-6xl mx-auto ${isDark ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-800'}`}>
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Excel Data Insights</h1>
+        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Excel Data Insights</h1>
         <div className="flex space-x-2">
           <button 
             onClick={() => setShow3D(!show3D)}
-            className={`px-4 py-2 rounded-md ${show3D ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+            className={`px-4 py-2 rounded-md ${show3D 
+              ? 'bg-purple-600 text-white' 
+              : isDark 
+                ? 'bg-gray-700 text-white' 
+                : 'bg-gray-200 text-gray-700'}`}
           >
             {show3D ? 'Show 2D Charts' : 'Show 3D Charts'}
           </button>
@@ -74,19 +78,23 @@ const InsightsDashboard = ({ data }) => {
       </div>
 
       {/* Data Summary */}
-      <div className="bg-white rounded-xl p-6 shadow-md">
-        <h2 className="text-lg font-semibold mb-4">Dataset Summary</h2>
+      <div className={`rounded-xl p-6 shadow-md ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+        <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Dataset Summary</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <p className="font-medium">Total Rows: <span className="font-normal">{summary.totalRows}</span></p>
-            <p className="font-medium">Numeric Columns: <span className="font-normal">{Object.keys(summary.numericColumns).length}</span></p>
+            <p className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Total Rows: <span className="font-normal">{summary.totalRows}</span>
+            </p>
+            <p className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Numeric Columns: <span className="font-normal">{Object.keys(summary.numericColumns).length}</span>
+            </p>
           </div>
         </div>
       </div>
 
       {/* Chart Selection */}
       {!show3D && (
-        <div className="bg-white rounded-xl p-4 shadow-md">
+        <div className={`rounded-xl p-4 shadow-md ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
           <div className="flex flex-wrap gap-2 mb-4">
             {chartTypes.map((type) => (
               <button
@@ -94,30 +102,32 @@ const InsightsDashboard = ({ data }) => {
                 onClick={() => setChartType(type.value)}
                 className={`px-3 py-1 rounded-md text-sm ${chartType === type.value 
                   ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                  : isDark 
+                    ? 'bg-gray-700 text-white hover:bg-gray-600' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
               >
                 {type.label}
               </button>
             ))}
           </div>
           <div ref={chartRef} className="h-96 w-full">
-            <Chart2D chartData={graphData} chartType={chartType} />
+            <Chart2D chartData={graphData} chartType={chartType} isDark={isDark} />
           </div>
         </div>
       )}
 
       {/* 3D Chart Section */}
       {show3D && (
-        <div className="bg-white rounded-xl p-4 shadow-md">
-          <h2 className="text-lg font-semibold mb-4">3D Visualization</h2>
+        <div className={`rounded-xl p-4 shadow-md ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+          <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>3D Visualization</h2>
           <div className="h-[500px] w-full">
-            <Chart3D chartData={graphData} />
+            <Chart3D chartData={graphData} isDark={isDark} />
           </div>
         </div>
       )}
 
       {/* Help Text */}
-      <div className="text-sm text-gray-500">
+      <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
         <p>Tip: Click and drag to rotate 3D charts. Use mouse wheel to zoom in/out.</p>
       </div>
     </div>
