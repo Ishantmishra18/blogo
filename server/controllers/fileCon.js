@@ -116,7 +116,8 @@ export const uploadFile = asyncHandler(async (req, res) => {
     // 4. Save to database
     
 
-   
+
+      const user = await User.findById(req.user.id);  
       const file = await File.create({
       title,
       summary,
@@ -124,7 +125,10 @@ export const uploadFile = asyncHandler(async (req, res) => {
       url: fileUrl,
       size: fileSize,
       uploadedBy: req.user?.id
-    });
+    })
+      user.history.push(title);
+      await user.save();
+  
 
     
    

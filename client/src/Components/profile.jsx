@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { useUser } from '../Context/userContext';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
@@ -7,19 +7,19 @@ import ConfirmCard from './confirmCard';
 import { useTheme } from '../Context/themeContext';
 import { IoSunny, IoMoon } from "react-icons/io5";
 import { IoHomeSharp } from "react-icons/io5";
-import { sortedArray } from 'three/src/animation/AnimationUtils.js';
-
+import Loader from './loading'; 
 
 const Profile = () => {
   const { user, setUser } = useUser();
   const [userHistory, setUserHistory] = useState([]);
   const [expandedItem, setExpandedItem] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const chartContainers = useRef([]);
   const [showConfirmation, setshow] = useState(false);
-  const [ showDet , setShowDet ] = useState({text:'', title:'' ,delId:''});
-  const { isDark , toggleTheme } = useTheme();
-  const [del , setDel] = useState('');
+  const [showDet, setShowDet] = useState({text:'', title:'', delId:''});
+  const { isDark, toggleTheme } = useTheme();
+  const [del, setDel] = useState('');
   const [sortKey, setSortKey] = useState('time');
 
   const handleLogout = async () => {
@@ -32,7 +32,7 @@ const Profile = () => {
     try {   
       await api.delete('/auth/delete');
       setUser(null);
-      setShowDet(null)
+      setShowDet(null);
       navigate('/login');
     } catch (error) {  
       console.error('Error deleting account:', error);
@@ -40,28 +40,57 @@ const Profile = () => {
   }
 
   const handleDel = async (id) => {
-    setshow(false);
-    setShowDet({text:'', title:'' ,delId:''});
-    setDel('');
-    try { 
+    try {
       await api.delete(`/files/delete/${id}`);
-      setUserHistory(prevHistory => prevHistory.filter(item => item._id !== id));
+      setUserHistory(prevHistory => {
+        const updatedHistory = prevHistory.filter(item => item._id !== id);
+        return sortData(updatedHistory, sortKey);
+      });
     } catch (error) {
       console.error('Error deleting file:', error);
+    } finally {
+      setshow(false);
+      setShowDet({text: '', title: '', delId: ''});
+      setDel('');
     }
   }
+
+  const sortData = (data, key) => {
+    return [...data].sort((a, b) => {
+      if (key === 'alphabet') {
+        return a.title.localeCompare(b.title);
+      } else if (key === 'size') {
+        return a.size - b.size;
+      } else if (key === 'time') {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+      return 0;
+    });
+  };
+
+  const sortedHistory = useMemo(() => {
+    return sortData(userHistory, sortKey);
+  }, [userHistory, sortKey]);
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
+        setIsLoading(true);
         const res = await api.get('/auth/history');
         setUserHistory(res.data);
       } catch (error) {
         console.error('Error fetching history:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
-    fetchHistory();
-  }, []);
+    
+    if (user?.history && user.history.length > 0) {
+      fetchHistory();
+    } else {
+      setIsLoading(false);
+    }
+  }, [user]);
 
   const toggleDetails = (index) => {
     if (expandedItem === index) {
@@ -77,84 +106,58 @@ const Profile = () => {
     }
   };
 
-const sortData = (data, key) => {
-  return [...data].sort((a, b) => {
-    if (key === 'aphabet') {
-      return a.title.localeCompare(b.title);
-    } else if (key === 'size') {
-      return a.size - b.size;
-    } else if (key === 'time') {
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    }
-    return 0;
-  });
-};
-
-useEffect(() => {
-  if (userHistory.length > 0) {
-    const sortedHistory = sortData(userHistory, sortKey);
-    setUserHistory(sortedHistory);
-  }
-}, [sortKey , userHistory]);
-
   return (
     <div className={`min-h-screen relative ${isDark ? 'bg-gray-900' : 'bg-gradient-to-b from-green-50 to-gray-50'}`}>
       {showConfirmation && (
-  <ConfirmCard 
-    close={() => setshow(false)}
-    onClick={() => {
-      if (del === 'file') {
-        handleDel(showDet.delId);
-      } else {
-        handleDelAccount();
-      }
-      setshow(false);
-    }}
-    text={showDet.text} 
-    name={showDet.title} 
-  />
-)}
+        <ConfirmCard 
+          close={() => setshow(false)}
+          onClick={() => {
+            if (del === 'file') {
+              handleDel(showDet.delId);
+            } else {
+              handleDelAccount();
+            }
+          }}
+          text={showDet.text} 
+          name={showDet.title} 
+        />
+      )}
       
       {/* Header */}
-     <header className={`shadow-sm sticky z-40 top-0 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-  <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4 sm:px-6 lg:px-8 flex justify-between items-center gap-3 sm:gap-0">
-    {/* Home Link - Full width on mobile, auto width on larger screens */}
-    <Link to='/' className={`flex items-center p-2 rounded-full text-lg font-semibold ${isDark ? 'text-white bg-gray-600' : 'text-gray-800 bg-gray-100'} transition-colors hover:text-green-600`}>
-     
-      <IoHomeSharp />
-    </Link>
+      <header className={`shadow-sm sticky z-40 top-0 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4 sm:px-6 lg:px-8 flex justify-between items-center gap-3 sm:gap-0">
+          <Link to='/' className={`flex items-center p-2 rounded-full text-lg font-semibold ${isDark ? 'text-white bg-gray-600' : 'text-gray-800 bg-gray-100'} transition-colors hover:text-green-600`}>
+            <IoHomeSharp />
+          </Link>
 
-    {/* Button Group - Stacked on mobile, inline on larger screens */}
-    <div className="flex gap-2 sm:gap-4 w-full sm:w-auto">
-      {/* Theme Toggle - Centered on mobile */}
-      <button
-        onClick={toggleTheme}
-        className={`p-2 rounded-full mx-auto sm:mx-0 ${
-          isDark ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-        } transition-colors`}
-        aria-label="Toggle theme"
-      >
-        {isDark ? <IoSunny className="w-5 h-5" /> : <IoMoon className="w-5 h-5" />}
-      </button>
+          <div className="flex gap-2 sm:gap-4 w-full sm:w-auto">
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-full mx-auto sm:mx-0 ${
+                isDark ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              } transition-colors`}
+              aria-label="Toggle theme"
+            >
+              {isDark ? <IoSunny className="w-5 h-5" /> : <IoMoon className="w-5 h-5" />}
+            </button>
 
-      {/* Action Buttons - Full width on mobile, auto width on larger screens */}
-      <div className="flex gap-2 sm:gap-4">
-        <button
-          onClick={handleLogout}
-          className="px-3  py-2 text-sm sm:text-base text-white rounded-lg cursor-pointer shadow-md bg-green-600 hover:bg-green-700 w-full sm:w-auto"
-        >
-          Logout
-        </button>
-        <button
-          className="px-3 py-2 text-sm whitespace-nowrap sm:text-base bg-red-600 text-white cursor-pointer rounded-lg hover:bg-red-700 transition-all shadow-md flex items-center justify-center w-full sm:w-auto"
-          onClick={() => setshow(true) & setShowDet({ delId: user._id, title:user.username , text:'are you sure you want to delete you account' , fun:()=>handleDelAccount })}
-        >
-          Delete account
-        </button>
-      </div>
-    </div>
-  </div>
-</header>
+            <div className="flex gap-2 sm:gap-4">
+              <button
+                onClick={handleLogout}
+                className="px-3 py-2 text-sm sm:text-base text-white rounded-lg cursor-pointer shadow-md bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+              >
+                Logout
+              </button>
+              <button
+                className="px-3 py-2 text-sm whitespace-nowrap sm:text-base bg-red-600 text-white cursor-pointer rounded-lg hover:bg-red-700 transition-all shadow-md flex items-center justify-center w-full sm:w-auto"
+                onClick={() => setshow(true) & setShowDet({ delId: user._id, title:user.username , text:'are you sure you want to delete you account' , fun:()=>handleDelAccount })}
+              >
+                Delete account
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -204,7 +207,7 @@ useEffect(() => {
         </div>
 
         {/* Upload History */}
-        <div className={`rounded-xl shadow-lg md:p-6 p-2 border ${
+        <div className={`rounded-xl relative shadow-lg md:p-6 p-2 border ${
           isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'
         }`}>
           <div className="flex justify-between items-center mb-6">
@@ -213,38 +216,43 @@ useEffect(() => {
             }`}>
               Your Upload History
             </h2>
-            <div className="flex gap-5">
-           <select 
-            value={sortKey} 
-            onChange={(e) => setSortKey(e.target.value)}
-            className={`
-              p-2 rounded-lg border transition-colors
-              ${isDark ? 
-                'bg-gray-700 border-gray-600 text-white hover:bg-gray-600' : 
-                'bg-white border-gray-300 text-gray-800 hover:bg-gray-50'
-              }
-              focus:outline-none focus:ring-2 
-              ${isDark ? 'focus:ring-blue-500' : 'focus:ring-blue-300'}
-            `}
-          >
-            <option value="alphabet">by Alphabet</option>
-            <option value="size">by Size</option>
-            <option value="time">by Time</option>
-          </select>
-            
-            <div className="flex items-center space-x-4">
-              <span className={`text-sm ${
-                isDark ? 'text-gray-400' : 'text-gray-500'
-              }`}>
-                {userHistory.length} {userHistory.length === 1 ? 'file' : 'files'}
-              </span>
-            </div>
-            </div>
+            {!isLoading && userHistory.length > 0 && (
+              <div className="flex gap-5">
+                <select 
+                  value={sortKey} 
+                  onChange={(e) => setSortKey(e.target.value)}
+                  className={`
+                    p-2 rounded-lg border transition-colors
+                    ${isDark ? 
+                      'bg-gray-700 border-gray-600 text-white hover:bg-gray-600' : 
+                      'bg-white border-gray-300 text-gray-800 hover:bg-gray-50'
+                    }
+                    focus:outline-none focus:ring-2 
+                    ${isDark ? 'focus:ring-blue-500' : 'focus:ring-blue-300'}
+                  `}
+                >
+                  <option value="alphabet">by Alphabet</option>
+                  <option value="size">by Size</option>
+                  <option value="time">by Time</option>
+                </select>
+                <div className="flex items-center space-x-4">
+                  <span className={`text-sm ${
+                    isDark ? 'text-gray-400' : 'text-gray-500'
+                  }`}>
+                    {userHistory.length} {userHistory.length === 1 ? 'file' : 'files'}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
           
-          {userHistory.length > 0 ? (
+          {isLoading ? (
+           
+              <Loader />
+            
+          ) : userHistory.length > 0 ? (
             <div className="space-y-4">
-              {userHistory.map((item, index) => (
+              {sortedHistory.map((item, index) => (
                 <div 
                   key={index} 
                   className={`rounded-xl shadow-sm hover:shadow-md transition-all duration-200 border ${
@@ -320,7 +328,7 @@ useEffect(() => {
                   {/* Toggle button */}
                   <button
                     onClick={() => toggleDetails(index)}
-                    className={`w-full px-5 py-3 text-sm font-medium flex items-center justify-between border-t ${
+                    className={`w-full cursor-pointer px-5 py-3 text-sm font-medium flex items-center justify-between border-t ${
                       isDark ? 'border-gray-700 text-green-400 hover:text-green-300' : 'border-gray-100 text-green-600 hover:text-green-800'
                     } transition-colors`}
                   >

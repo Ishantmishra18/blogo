@@ -19,12 +19,12 @@ const ConfirmCard = ({ text, onClick, close, name, type = "delete" }) => {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div 
-        className={`relative rounded-xl p-6 w-full max-w-md transition-all ${isDark ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'} shadow-xl`}
+        className={`relative rounded-xl p-6 pt-10 w-full max-w-md transition-all ${isDark ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'} shadow-xl`}
       >
         {/* Close button */}
         <button 
           onClick={close}
-          className={`absolute top-4 right-4 p-1 rounded-full ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+          className={`absolute cursor-pointer top-4 right-4 p-1 rounded-full ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
           aria-label="Close"
         >
           <IoClose className="w-6 h-6" />
@@ -61,14 +61,14 @@ const ConfirmCard = ({ text, onClick, close, name, type = "delete" }) => {
           <div className="flex justify-end gap-3 pt-4">
             <button
               onClick={close}
-              className={`px-4 py-2 rounded-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+              className={`px-4 py-2 cursor-pointer rounded-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
             >
               Cancel
             </button>
             <button
               onClick={handleConfirm}
               disabled={type === "delete" && inputValue !== name}
-              className={`px-4 py-2 rounded-lg text-white ${type === "delete" ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`px-4 py-2 rounded-lg cursor-pointer text-white ${type === "delete" ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               Confirm
             </button>

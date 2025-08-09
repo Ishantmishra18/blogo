@@ -48,3 +48,16 @@ export const getData = asyncHandler(async (req, res) => {
     });
   }
 });
+
+
+export const deleteUser = async (req, res) => {
+  try {
+
+    const userId = req.params.id; 
+    const user = await User.findByIdAndDelete(userId); 
+    const files = await File.deleteMany({ uploadedBy: userId });}
+  catch (error) {
+    console.error('Error deleting account:', error);
+    return res.status(500).json({ message: 'Server error' });
+  } 
+} 

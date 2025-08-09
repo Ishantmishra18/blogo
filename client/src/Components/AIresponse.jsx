@@ -93,7 +93,7 @@ const AIresponse = ({ data }) => {
             {/* Floating action button */}
             <button
                 onClick={togglePanel}
-                className={`px-6 py-3 fixed left-2 bottom-2 z-30 rounded-lg shadow-lg transition-all duration-300 ${
+                className={`px-6 py-3 md:text-xl text-lg fixed left-2 bottom-2 z-30 rounded-lg shadow-lg transition-all duration-300 ${
                     isPanelOpen 
                         ? isDark 
                             ? 'bg-gray-600 text-white' 
@@ -121,10 +121,10 @@ const AIresponse = ({ data }) => {
             </button>
             
             {/* Slide-up panel */}
-            <div className={`fixed left-0 w-screen bottom-0 shadow-xl rounded-t-xl transition-all duration-300 transform ${
+            <div className={`fixed left-0 w-screen  bottom-0 shadow-xl rounded-t-2xl transition-all duration-300 transform ${
                 isPanelOpen ? 'translate-y-0' : 'translate-y-full'
             } ${isDark ? 'bg-gray-700/90 backdrop-blur-lg' : 'bg-white/80 backdrop-blur-lg'}`} 
-            style={{ height: '45vh' }}>
+            style={{ height: '65vh' }}>
                 <div className="h-full flex flex-col">
                     {/* Panel header */}
                     <div className={`p-4 border-b flex justify-between items-center ${
@@ -148,7 +148,7 @@ const AIresponse = ({ data }) => {
                     </div>
 
                     {/* Content area with fixed height and scroll */}
-                    <div className="flex-1 overflow-y-auto p-4">
+                    <div className="flex-1 overflow-y-auto p-4 pb-32">
                         {!summary && !isLoading && !error && (
                             <div className={`h-full flex flex-col items-center justify-center text-center ${
                                 isDark ? 'text-gray-200' : 'text-gray-700'

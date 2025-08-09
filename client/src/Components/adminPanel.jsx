@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useContext } from 'react';
 import api from '../utils/api';
-import { FiLock, FiUnlock, FiUsers, FiFile, FiChevronDown, FiChevronUp, FiSun, FiMoon } from 'react-icons/fi';
+import { FiLock, FiUnlock, FiUsers, FiFile, FiChevronDown, FiChevronUp, FiSun, FiMoon, FiTrash2 } from 'react-icons/fi';
 import { useTheme } from '../Context/themeContext';
+import ConfirmCard from './confirmCard';
 
 const AdminPanel = () => {
   const [data, setData] = useState({ users: [], files: [] });
@@ -11,6 +12,9 @@ const AdminPanel = () => {
   const [pass, setPass] = useState('');
   const [expandedUser, setExpandedUser] = useState(null);
   const { isDark, toggleTheme } = useTheme();
+  const [showConfirmation, setshow] = useState(false);
+  const [showDet, setShowDet] = useState({ text: '', title: '', delId: '', type: '' });
+  const [del, setDel] = useState('');
 
   const adminPass = 'admin';
 
@@ -34,6 +38,35 @@ const AdminPanel = () => {
     }
   }, [access]);
 
+  const handleDeleteAccount = async (userId) => {
+    try {
+      await api.delete(`/admin/delete-user/${userId}`);
+      setData(prev => ({
+        ...prev,
+        users: prev.users.filter(user => user._id !== userId),
+        files: prev.files.filter(file => file.uploadedBy._id !== userId)
+      }));
+    } catch (error) {
+      console.error('Error deleting account:', error);
+    } finally {
+      setshow(false);
+    }
+  };
+
+  const handleDeleteFile = async (fileId) => {
+    try {
+      await api.delete(`/admin/delete-file/${fileId}`);
+      setData(prev => ({
+        ...prev,
+        files: prev.files.filter(file => file._id !== fileId)
+      }));
+    } catch (error) {
+      console.error('Error deleting file:', error);
+    } finally {
+      setshow(false);
+    }
+  };
+
   const handleCheck = (e) => {
     e.preventDefault();
     if (pass === adminPass) {
@@ -48,6 +81,16 @@ const AdminPanel = () => {
     setExpandedUser(expandedUser === userId ? null : userId);
   };
 
+  const showDeleteConfirmation = (id, name, type) => {
+    setshow(true);
+    setShowDet({
+      text: `Are you sure you want to delete this ${type}?`,
+      title: name,
+      delId: id,
+      type: type
+    });
+  };
+
   if (loading) {
     return (
       <div className={`flex justify-center items-center h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -59,6 +102,20 @@ const AdminPanel = () => {
   if (error) {
     return (
       <div className={`flex flex-col justify-center items-center h-screen p-4 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        {showConfirmation && (
+          <ConfirmCard 
+            close={() => setshow(false)}
+            onClick={() => {
+              if (showDet.type === 'file') {
+                handleDeleteFile(showDet.delId);
+              } else if (showDet.type === 'user') {
+                handleDeleteAccount(showDet.delId);
+              }
+            }}
+            text={showDet.text} 
+            name={showDet.title} 
+          />
+        )}
         <div className={`p-6 rounded-lg shadow-md max-w-md w-full text-center ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
           <div className="text-red-500 mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -125,6 +182,21 @@ const AdminPanel = () => {
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-gray-900 text-gray-100' : 'bg-gray-50'}`}>
+      {showConfirmation && (
+        <ConfirmCard 
+          close={() => setshow(false)}
+          onClick={() => {
+            if (showDet.type === 'file') {
+              handleDeleteFile(showDet.delId);
+            } else if (showDet.type === 'user') {
+              handleDeleteAccount(showDet.delId);
+            }
+          }}
+          text={showDet.text} 
+          name={showDet.title} 
+        />
+      )}
+      
       <div className="max-w-7xl mx-auto p-4 md:p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Admin Dashboard</h1>
@@ -194,6 +266,18 @@ const AdminPanel = () => {
                       <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800'}`}>
                         {userFiles.length} files
                       </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          showDeleteConfirmation(user._id, user.username, 'user');
+                        }}
+                        className={`ml-3 p-1 rounded-full hover:bg-opacity-20 transition-colors ${
+                          isDark ? 'text-red-400 hover:bg-red-900' : 'text-red-500 hover:bg-red-100'
+                        }`}
+                        aria-label="Delete user"
+                      >
+                        <FiTrash2 className="h-5 w-5" />
+                      </button>
                       {expandedUser === user._id ? (
                         <FiChevronUp className={`ml-3 h-5 w-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
                       ) : (
@@ -216,6 +300,7 @@ const AdminPanel = () => {
                                   <th className={`text-left p-3 font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Date</th>
                                   <th className={`text-left p-3 font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Type</th>
                                   <th className={`text-left p-3 font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Size</th>
+                                  <th className={`text-left p-3 font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Actions</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -232,6 +317,17 @@ const AdminPanel = () => {
                                       </span>
                                     </td>
                                     <td className="p-3">{(file.size / 1024).toFixed(2)} KB</td>
+                                    <td className="p-3">
+                                      <button
+                                        onClick={() => showDeleteConfirmation(file._id, file.title, 'file')}
+                                        className={`p-1 rounded-full hover:bg-opacity-20 transition-colors ${
+                                          isDark ? 'text-red-400 hover:bg-red-900' : 'text-red-500 hover:bg-red-100'
+                                        }`}
+                                        aria-label="Delete file"
+                                      >
+                                        <FiTrash2 className="h-5 w-5" />
+                                      </button>
+                                    </td>
                                   </tr>
                                 ))}
                               </tbody>
