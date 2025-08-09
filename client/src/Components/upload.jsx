@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { FiUpload, FiFile, FiBarChart2, FiPieChart } from "react-icons/fi";
+import React, { useState, useEffect } from "react";
+import { FiUpload, FiFile, FiBarChart2, FiPieChart, FiColumns, FiX } from "react-icons/fi";
 import api from "../utils/api";
 import Chart from './chart';
 import * as XLSX from 'xlsx';
@@ -17,7 +17,26 @@ export default function UploadPage() {
   const [previewData, setPreviewData] = useState([]);
   const [title, setTitle] = useState("");
   const [titleError, setTitleError] = useState("");
-  
+  const [headers, setHeaders] = useState([]);
+  const [mapping, setMapping] = useState({
+    xAxis: "",
+    yAxis: "",
+    showMapping: false
+  });
+  const [showErrorCard, setShowErrorCard] = useState(false);
+
+  // Show error card and auto-hide after 5 seconds
+  useEffect(() => {
+    if (error) {
+      setShowErrorCard(true);
+      const timer = setTimeout(() => {
+        setShowErrorCard(false);
+        setError("");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile && (
@@ -33,12 +52,35 @@ export default function UploadPage() {
         const workbook = XLSX.read(data, { type: "array" });
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        
+        // Extract headers (first row)
+        const fileHeaders = jsonData[0] || [];
+        setHeaders(fileHeaders.map((header, index) => ({
+          name: header || `Column ${index + 1}`,
+          index
+        })));
+        
         setPreviewData(jsonData.slice(0, 5));
         
         // Auto-generate title from filename if empty
         if (!title) {
           const cleanName = selectedFile.name.replace(/\.[^/.]+$/, ""); // Remove extension
           setTitle(cleanName);
+        }
+        
+        // Auto-select first two columns if available
+        if (fileHeaders.length >= 2) {
+          setMapping({
+            xAxis: fileHeaders[0] || "0",
+            yAxis: fileHeaders[1] || "1",
+            showMapping: true
+          });
+        } else if (fileHeaders.length === 1) {
+          setMapping({
+            xAxis: fileHeaders[0] || "0",
+            yAxis: "",
+            showMapping: true
+          });
         }
       };
       reader.readAsArrayBuffer(selectedFile);
@@ -53,13 +95,15 @@ export default function UploadPage() {
     // Validate title
     if (!title.trim()) {
       setTitleError("Please enter a title for your chart");
+      setError("Please enter a title for your chart");
       return;
     }
     else if (user?.history.includes(title)) {
       setTitleError("Title must be unique");
+      setError("Title must be unique");
       return;
     }
-     else {
+    else {
       setTitleError("");
     }
     
@@ -68,12 +112,27 @@ export default function UploadPage() {
       return;
     }
 
+    // Validate column mapping
+    if (mapping.showMapping && !mapping.xAxis) {
+      setError("Please select at least an X-axis column");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const formData = new FormData();
       formData.append("excelFile", file);
       formData.append("title", title);
-       formData.append("fileSize", Math.round(file.size / 1024)); 
+      formData.append("fileSize", Math.round(file.size / 1024));
+      
+      // Add mapping data if user has selected columns
+      if (mapping.showMapping) {
+        formData.append("xAxis", mapping.xAxis);
+        if (mapping.yAxis) {
+          formData.append("yAxis", mapping.yAxis);
+        }
+      }
+
       const uploadRes = await api.post("/files/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -89,6 +148,29 @@ export default function UploadPage() {
 
   return (
     <div className={`min-h-screen pt-[16vh] pb-28 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      {/* Error Notification Card */}
+      {showErrorCard && (
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md`}>
+          <div className={`rounded-lg shadow-lg p-4 flex items-start justify-between ${
+            isDark ? 'bg-red-800 text-red-100' : 'bg-red-100 text-red-800'
+          }`}>
+            <div className="flex-1">
+              <h3 className="font-medium">Error</h3>
+              <p className="text-sm mt-1">{error}</p>
+            </div>
+            <button
+              onClick={() => setShowErrorCard(false)}
+              className={`ml-4 p-1 rounded-full ${
+                isDark ? 'hover:bg-red-700' : 'hover:bg-red-200'
+              }`}
+              aria-label="Close error"
+            >
+              <FiX className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
@@ -191,68 +273,75 @@ export default function UploadPage() {
                   )}
                 </div>
 
-                {error && (
-                  <div className={`rounded-md p-4 ${
-                    isDark ? 'bg-red-900' : 'bg-red-50'
+                {/* Data Mapping UI */}
+                {mapping.showMapping && headers.length > 0 && (
+                  <div className={`p-4 rounded-lg ${
+                    isDark ? 'bg-gray-700' : 'bg-gray-50'
                   }`}>
-                    <div className="flex">
-                      <div className="ml-3">
-                        <h3 className={`text-sm font-medium ${
-                          isDark ? 'text-red-200' : 'text-red-800'
-                        }`}>
-                          {error}
-                        </h3>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Data Preview */}
-                {previewData.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className={`text-lg font-medium ${
+                    <h3 className={`flex items-center text-lg font-medium mb-4 ${
                       isDark ? 'text-white' : 'text-gray-900'
                     }`}>
-                      Data Preview
+                      <FiColumns className="mr-2" />
+                      Map Your Data Columns
                     </h3>
-                    <div className={`overflow-x-auto shadow ring-1 rounded-lg ${
-                      isDark ? 'ring-gray-600' : 'ring-black ring-opacity-5'
-                    }`}>
-                      <table className="min-w-full divide-y divide-gray-300">
-                        <thead className={isDark ? 'bg-gray-700' : 'bg-gray-50'}>
-                          <tr>
-                            {previewData[0]?.map((header, idx) => (
-                              <th
-                                key={idx}
-                                scope="col"
-                                className={`px-3 py-3 text-left text-xs font-medium uppercase tracking-wider ${
-                                  isDark ? 'text-gray-300' : 'text-gray-500'
-                                }`}
-                              >
-                                {header || `Column ${idx + 1}`}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody className={`divide-y ${
-                          isDark ? 'divide-gray-600 bg-gray-800' : 'divide-gray-200 bg-white'
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="x-axis" className={`block text-sm font-medium mb-1 ${
+                          isDark ? 'text-gray-300' : 'text-gray-700'
                         }`}>
-                          {previewData.slice(1).map((row, rowIdx) => (
-                            <tr key={rowIdx}>
-                              {row.map((cell, cellIdx) => (
-                                <td
-                                  key={cellIdx}
-                                  className={`px-3 py-4 whitespace-nowrap text-sm ${
-                                    isDark ? 'text-gray-300' : 'text-gray-500'
-                                  }`}
-                                >
-                                  {cell}
-                                </td>
-                              ))}
-                            </tr>
+                          X-Axis (Categories) *
+                        </label>
+                        <select
+                          id="x-axis"
+                          value={mapping.xAxis}
+                          onChange={(e) => setMapping({...mapping, xAxis: e.target.value})}
+                          className={`block w-full px-3 py-2 rounded-md border shadow-sm focus:ring-2 focus:ring-offset-2 ${
+                            isDark
+                              ? "border-gray-600 bg-gray-700 text-white focus:ring-blue-500 focus:border-blue-500"
+                              : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                          }`}
+                          required
+                        >
+                          <option value="">Select X-Axis</option>
+                          {headers.map((header) => (
+                            <option key={header.index} value={header.name}>
+                              {header.name}
+                            </option>
                           ))}
-                        </tbody>
-                      </table>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="y-axis" className={`block text-sm font-medium mb-1 ${
+                          isDark ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                          Y-Axis (Values)
+                        </label>
+                        <select
+                          id="y-axis"
+                          value={mapping.yAxis}
+                          onChange={(e) => setMapping({...mapping, yAxis: e.target.value})}
+                          className={`block w-full px-3 py-2 rounded-md border shadow-sm focus:ring-2 focus:ring-offset-2 ${
+                            isDark
+                              ? "border-gray-600 bg-gray-700 text-white focus:ring-blue-500 focus:border-blue-500"
+                              : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                          }`}
+                        >
+                          <option value="">Select Y-Axis (optional)</option>
+                          {headers.map((header) => (
+                            <option key={header.index} value={header.name}>
+                              {header.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-3 text-sm italic ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }">
+                      Tip: X-Axis is typically for categories, Y-Axis for numerical values
                     </div>
                   </div>
                 )}
@@ -261,9 +350,9 @@ export default function UploadPage() {
                 <div className="flex justify-end">
                   <button
                     type="submit"
-                    disabled={!file || isLoading || !title.trim()}
+                    disabled={!file || isLoading || !title.trim() || (mapping.showMapping && !mapping.xAxis)}
                     className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                      !file || isLoading || !title.trim()
+                      !file || isLoading || !title.trim() || (mapping.showMapping && !mapping.xAxis)
                         ? isDark 
                           ? "bg-gray-600 cursor-not-allowed" 
                           : "bg-gray-400 cursor-not-allowed"

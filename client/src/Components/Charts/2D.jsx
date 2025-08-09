@@ -1,14 +1,4 @@
-import React, { useRef, useEffect } from "react";
-import {
-  Line,
-  Bar,
-  Pie,
-  Doughnut,
-  Radar,
-  PolarArea,
-  Bubble,
-  Scatter,
-} from "react-chartjs-2";
+import React, { useRef, useEffect, useCallback } from "react";
 import {
   Chart as ChartJS,
   LineElement,
@@ -22,8 +12,10 @@ import {
   RadialLinearScale,
   Title,
 } from "chart.js";
+import { Line, Bar, Pie, Doughnut, Radar, PolarArea } from "react-chartjs-2";
 import { useTheme } from "../../Context/themeContext";
 
+// Register ChartJS components
 ChartJS.register(
   LineElement,
   BarElement,
@@ -37,62 +29,73 @@ ChartJS.register(
   Title
 );
 
+// Updated color palette with green as first color
 const DEFAULT_COLORS = [
-  "rgba(255, 99, 132, 0.7)",
-  "rgba(54, 162, 235, 0.7)",
-  "rgba(255, 206, 86, 0.7)",
-  "rgba(75, 192, 192, 0.7)",
-  "rgba(153, 102, 255, 0.7)",
-  "rgba(255, 159, 64, 0.7)",
-  "rgba(199, 199, 199, 0.7)",
+  "rgba(75, 192, 192, 0.7)",  // Green
+  "rgba(54, 162, 235, 0.7)",  // Blue
+  "rgba(255, 206, 86, 0.7)",  // Yellow
+  "rgba(255, 99, 132, 0.7)",  // Red (moved from first position)
+  "rgba(153, 102, 255, 0.7)", // Purple
+  "rgba(255, 159, 64, 0.7)",  // Orange
 ];
 
-const Chart2D = ({
-  chartData,
-  chartType = "line",
-  title = "Data Insights",
-}) => {
+const Chart2D = ({ chartData, chartType = "line", title = "Data Insights" }) => {
   const chartRef = useRef(null);
-  const chartInstance = useRef(null);
   const { isDark } = useTheme();
+  const chartInstance = useRef(null);
 
-  const processedData = React.useMemo(() => {
+  // Destroy previous chart instance before creating a new one
+  const destroyChart = useCallback(() => {
+    if (chartInstance.current) {
+      try {
+        chartInstance.current.destroy();
+      } catch (err) {
+        console.warn("Error destroying chart:", err);
+      }
+      chartInstance.current = null;
+    }
+  }, []);
+
+  // Process chart data
+  const processedData = useCallback(() => {
     if (!chartData) return null;
 
     const data = JSON.parse(JSON.stringify(chartData));
 
-    data.datasets = data.datasets.map((dataset, i) => {
-      if (["pie", "doughnut", "polarArea"].includes(chartType)) {
-        return {
-          ...dataset,
-          backgroundColor:
-            dataset.backgroundColor ||
-            DEFAULT_COLORS.slice(0, data.labels?.length),
-          borderColor: dataset.borderColor || "#fff",
-          borderWidth: dataset.borderWidth || 1,
-        };
+    // Special handling for pie/doughnut charts
+    if (["pie", "doughnut"].includes(chartType)) {
+      // Ensure we have enough colors for all segments
+      const segmentColors = [];
+      const totalSegments = data.labels?.length || 0;
+      
+      // Generate colors by cycling through DEFAULT_COLORS
+      for (let i = 0; i < totalSegments; i++) {
+        segmentColors.push(DEFAULT_COLORS[i % DEFAULT_COLORS.length]);
       }
 
-      return {
+      data.datasets = data.datasets.map(dataset => ({
         ...dataset,
-        backgroundColor:
-          dataset.backgroundColor || DEFAULT_COLORS[i % DEFAULT_COLORS.length],
-        borderColor:
-          dataset.borderColor ||
-          dataset.backgroundColor ||
-          DEFAULT_COLORS[i % DEFAULT_COLORS.length],
+        backgroundColor: dataset.backgroundColor || segmentColors,
+        borderColor: dataset.borderColor || (isDark ? "#374151" : "#f3f4f6"),
+        borderWidth: dataset.borderWidth || 1,
+      }));
+    } else {
+      // For other chart types
+      data.datasets = data.datasets.map((dataset, i) => ({
+        ...dataset,
+        backgroundColor: dataset.backgroundColor || DEFAULT_COLORS[i % DEFAULT_COLORS.length],
+        borderColor: dataset.borderColor || DEFAULT_COLORS[i % DEFAULT_COLORS.length],
         borderWidth: dataset.borderWidth || 2,
-      };
-    });
+      }));
+    }
 
     return data;
-  }, [chartData, chartType]);
+  }, [chartData, chartType, isDark]);
 
-  const chartOptions = React.useMemo(() => {
+  // Chart options
+  const chartOptions = useCallback(() => {
     const textColor = isDark ? "#ffffff" : "#374151";
-    const gridColor = isDark
-      ? "rgba(255, 255, 255, 0.1)"
-      : "rgba(0, 0, 0, 0.05)";
+    const gridColor = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)";
     const tooltipBg = isDark ? "rgba(40, 40, 40, 0.9)" : "rgba(0, 0, 0, 0.8)";
 
     const baseOptions = {
@@ -101,196 +104,149 @@ const Chart2D = ({
       plugins: {
         legend: {
           position: "top",
-          labels: {
-            color: textColor,
-            font: {
-              size: 12,
-              family: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif",
-              weight: "bold",
-            },
-            padding: 20,
+          labels: { 
+            color: textColor, 
+            padding: 20, 
             usePointStyle: true,
-          },
+            font: {
+              size: 12
+            }
+          }
         },
         title: {
           display: true,
           text: title,
           color: textColor,
+          padding: { top: 10, bottom: 30 },
           font: {
-            size: 18,
-            family: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif",
-            weight: "bold",
-          },
-          padding: {
-            top: 10,
-            bottom: 30,
-          },
+            size: 18
+          }
         },
         tooltip: {
           backgroundColor: tooltipBg,
           titleColor: isDark ? "#ffffff" : "#f9fafb",
           bodyColor: isDark ? "#e5e7eb" : "#f3f4f6",
+          padding: 12,
+          cornerRadius: 6,
+          bodyFont: {
+            size: 12
+          },
           titleFont: {
             size: 14,
-            weight: "bold",
-          },
-          bodyFont: {
-            size: 12,
-          },
-          padding: 12,
-          usePointStyle: true,
-          cornerRadius: 6,
-          borderColor: isDark ? "#4b5563" : "#e5e7eb",
-          borderWidth: 1,
-        },
-      },
-      scales: {
-        x: {
-          grid: {
-            display: false,
-            drawBorder: false,
-            color: gridColor,
-          },
-          ticks: {
-            color: textColor,
-            font: {
-              size: 12,
-            },
-          },
-        },
-        y: {
-          grid: {
-            color: gridColor,
-            drawBorder: false,
-          },
-          ticks: {
-            color: textColor,
-            font: {
-              size: 12,
-            },
-            padding: 10,
-          },
-        },
-      },
-      elements: {
-        line: {
-          tension: 0.4,
-          borderWidth: 3,
-          fill: "start",
-        },
-        point: {
-          radius: 4,
-          hoverRadius: 6,
-          backgroundColor: isDark ? "#1f2937" : "white",
-          borderWidth: 2,
-        },
-        bar: {
-          borderRadius: 6,
-          borderSkipped: "bottom",
-        },
-      },
-    };
-
-    return {
-      ...baseOptions,
-      ...(chartType === "pie" || chartType === "doughnut"
-        ? {
-            plugins: {
-              ...baseOptions.plugins,
-              legend: {
-                ...baseOptions.plugins.legend,
-                position: "right",
-              },
-            },
-            cutout: chartType === "doughnut" ? "70%" : 0,
+            weight: "bold"
           }
-        : {}),
-      ...(chartType === "radar" || chartType === "polarArea"
-        ? {
-            scales: {
-              r: {
-                angleLines: {
-                  display: chartType === "radar",
-                  color: gridColor,
-                },
-                grid: {
-                  color: gridColor,
-                },
-                pointLabels: {
-                  color: textColor,
-                  font: {
-                    size: 12,
-                  },
-                },
-                ticks: {
-                  display: false,
-                  beginAtZero: true,
-                  backdropColor: "transparent",
-                },
-              },
-            },
-          }
-        : {}),
-    };
-  }, [chartType, title, isDark]);
-
-  useEffect(() => {
-    return () => {
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
-        chartInstance.current = null;
-      }
-    };
-  }, [processedData, chartType]);
-
-  const renderChart = () => {
-    if (!processedData) return null;
-
-    const chartProps = {
-      ref: (ref) => {
-        if (ref) {
-          chartInstance.current = ref;
         }
       },
-      data: processedData,
-      options: chartOptions,
-      redraw: true,
+      scales: {
+        x: { 
+          grid: { 
+            display: false, 
+            color: gridColor 
+          }, 
+          ticks: { 
+            color: textColor 
+          } 
+        },
+        y: { 
+          grid: { 
+            color: gridColor 
+          }, 
+          ticks: { 
+            color: textColor, 
+            padding: 10 
+          } 
+        }
+      }
     };
 
-    switch (chartType) {
-      case "bar":
-        return <Bar {...chartProps} />;
-      case "pie":
-        return <Pie {...chartProps} />;
-      case "doughnut":
-        return <Doughnut {...chartProps} />;
-      case "radar":
-        return <Radar {...chartProps} />;
-      case "polarArea":
-        return <PolarArea {...chartProps} />;
-      case "bubble":
-        return <Bubble {...chartProps} />;
-      case "scatter":
-        return <Scatter {...chartProps} />;
-      default:
-        return <Line {...chartProps} />;
+    // Special options for pie/doughnut charts
+    if (chartType === "pie" || chartType === "doughnut") {
+      return {
+        ...baseOptions,
+        plugins: {
+          ...baseOptions.plugins,
+          legend: {
+            ...baseOptions.plugins.legend,
+            position: "right",
+          }
+        },
+        cutout: chartType === "doughnut" ? "70%" : 0,
+        elements: {
+          arc: {
+            borderWidth: 1,
+            borderColor: isDark ? "#374151" : "#f3f4f6"
+          }
+        }
+      };
     }
+
+    if (chartType === "radar" || chartType === "polarArea") {
+      return {
+        ...baseOptions,
+        scales: {
+          r: {
+            angleLines: { 
+              display: chartType === "radar", 
+              color: gridColor 
+            },
+            grid: { 
+              color: gridColor 
+            },
+            pointLabels: { 
+              color: textColor 
+            },
+            ticks: { 
+              display: false, 
+              backdropColor: "transparent" 
+            }
+          }
+        }
+      };
+    }
+
+    return baseOptions;
+  }, [chartType, title, isDark]);
+
+  // Handle chart updates and cleanup
+  useEffect(() => {
+    destroyChart(); // Clean up previous chart before creating new one
+
+    return () => {
+      destroyChart(); // Clean up on unmount
+    };
+  }, [destroyChart, processedData, chartOptions]);
+
+  const renderChart = () => {
+    if (!processedData()) return null;
+
+    const ChartComponent = {
+      line: Line,
+      bar: Bar,
+      pie: Pie,
+      doughnut: Doughnut,
+      radar: Radar,
+      polarArea: PolarArea,
+    }[chartType] || Line;
+
+    return (
+      <ChartComponent
+        ref={(ref) => {
+          chartRef.current = ref;
+          if (ref) chartInstance.current = ref.chartInstance;
+        }}
+        data={processedData()}
+        options={chartOptions()}
+        redraw={false}
+      />
+    );
   };
 
   return (
-    <div
-      className={`relative w-full h-[300px] sm:h-[400px] md:h-[500px] p-2 sm:p-4 rounded-xl shadow-md ${
-        isDark ? "bg-gray-800" : "bg-white"
-      }`}
-    >
-      {processedData ? (
-        renderChart()
-      ) : (
-        <div
-          className={`text-center p-8 ${
-            isDark ? "text-gray-300" : "text-gray-600"
-          }`}
-        >
+    <div className={`relative w-full h-[300px] sm:h-[400px] md:h-[500px] p-2 sm:p-4 rounded-xl shadow-md ${
+      isDark ? "bg-gray-800" : "bg-white"
+    }`}>
+      {processedData() ? renderChart() : (
+        <div className={`text-center p-8 ${isDark ? "text-gray-300" : "text-gray-600"}`}>
           No data available
         </div>
       )}
@@ -298,4 +254,4 @@ const Chart2D = ({
   );
 };
 
-export default Chart2D;
+export default React.memo(Chart2D);

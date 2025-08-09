@@ -148,7 +148,7 @@ const AIresponse = ({ data }) => {
                     </div>
 
                     {/* Content area with fixed height and scroll */}
-                    <div className="flex-1 overflow-y-auto p-4 pb-32">
+                    <div className="flex-1 overflow-y-auto p-4 pb-20">
                         {!summary && !isLoading && !error && (
                             <div className={`h-full flex flex-col items-center justify-center text-center ${
                                 isDark ? 'text-gray-200' : 'text-gray-700'
@@ -156,7 +156,7 @@ const AIresponse = ({ data }) => {
                                 <h3 className="text-lg font-medium">AI Data Summary</h3>
                                 <p className="mt-2 text-sm">Click the button below to generate insights from your data</p>
                                 <button
-                                    className={`mt-4 px-6 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 ${
+                                    className={`mt-4 px-6 py-2 cursor-pointer rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 ${
                                         isDark ? 'bg-green-700 text-white' : 'bg-green-600 text-white'
                                     }`}
                                     onClick={generateSummary}

@@ -1,20 +1,21 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
+import { Chart as ChartJS } from 'chart.js';
 import Chart2D from './Charts/2D';
 import Chart3D from './Charts/3D';
 import { useTheme } from '../Context/themeContext';
 
 const InsightsDashboard = ({ data }) => {
-  const chartRef = useRef();
+  const chart2DRef = useRef(null);
+  const chart3DRef = useRef(null);
   const { summary, graphData } = data;
   const { isDark } = useTheme();
   
-  // State for chart type selection
   const [chartType, setChartType] = useState('line');
   const [show3D, setShow3D] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [chartInstance, setChartInstance] = useState(null);
 
-  // Available chart types
   const chartTypes = [
     { value: 'line', label: 'Line Chart' },
     { value: 'bar', label: 'Bar Chart' },
@@ -24,18 +25,68 @@ const InsightsDashboard = ({ data }) => {
     { value: 'polarArea', label: 'Polar Area' }
   ];
 
+  // Clean up chart instances on unmount or when switching chart types
+  useEffect(() => {
+    return () => {
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+    };
+  }, [chartInstance]);
+
+  const handleChartMount = (chart) => {
+    setChartInstance(chart);
+  };
+
   const downloadChart = async () => {
     try {
       setIsLoading(true);
-      const canvas = await html2canvas(chartRef.current, {
-        scale: 2, // Higher quality
-        logging: false,
-        useCORS: true,
-      });
-      const link = document.createElement('a');
-      link.download = `insight-${chartType}-${new Date().toISOString().slice(0,10)}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      
+      if (show3D) {
+        // For 3D charts - use html2canvas with fallback colors
+        const container = chart3DRef.current;
+        
+        // Temporarily replace unsupported CSS
+        const originalStyles = [];
+        const elements = container.querySelectorAll('*[style*="oklch"]');
+        
+        elements.forEach(el => {
+          originalStyles.push({
+            element: el,
+            style: el.getAttribute('style')
+          });
+          el.style.cssText = el.style.cssText.replace(/oklch\([^)]+\)/g, isDark ? '#6b7280' : '#9ca3af');
+        });
+
+        const canvas = await html2canvas(container, {
+          scale: 2,
+          logging: false,
+          useCORS: true,
+          backgroundColor: isDark ? '#111827' : '#ffffff',
+          allowTaint: true,
+        });
+
+        // Restore original styles
+        originalStyles.forEach(item => {
+          if (item.element && item.style) {
+            item.element.setAttribute('style', item.style);
+          }
+        });
+
+        const link = document.createElement('a');
+        link.download = `insight-3d-${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } else {
+        // For 2D charts - use Chart.js native export
+        const canvas = chart2DRef.current.querySelector('canvas');
+        if (canvas) {
+          const link = document.createElement('a');
+          link.download = `insight-${chartType}-${new Date().toISOString().slice(0,10)}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        }
+      }
     } catch (error) {
       console.error('Error downloading chart:', error);
     } finally {
@@ -44,18 +95,12 @@ const InsightsDashboard = ({ data }) => {
   };
 
   return (
-    <div
-      className={`md:p-5 p-1 rounded-xl space-y-6 max-w-6xl mx-auto ${
-        isDark ? "bg-gray-900 text-gray-100" : "bg-white text-gray-800"
-      }`}
-    >
-      {/* Header */}
+    <div className={`md:p-5 my-10 p-1 rounded-xl space-y-6 max-w-6xl mx-auto ${
+      isDark ? "bg-gray-900 text-gray-100" : "bg-white text-gray-800"
+    }`}>
+      {/* Header and controls remain the same */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <h1
-          className={`text-2xl font-bold ${
-            isDark ? "text-white" : "text-gray-800"
-          }`}
-        >
+        <h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-800"}`}>
           Excel Data Insights
         </h1>
         <div className="flex space-x-2 text-sm md:text-md">
@@ -108,35 +153,25 @@ const InsightsDashboard = ({ data }) => {
       </div>
 
       {/* Data Summary */}
-      <div
-        className={`rounded-xl md:p-6 p-2 shadow-md ${
-          isDark ? "bg-gray-800" : "bg-white"
-        }`}
-      >
-        <h2
-          className={`md:text-lg text-md font-semibold mb-4 ${
-            isDark ? "text-white" : "text-gray-800"
-          }`}
-        >
+      <div className={`rounded-xl md:p-6 p-2 shadow-md ${
+        isDark ? "bg-gray-800" : "bg-white"
+      }`}>
+        <h2 className={`md:text-lg text-md font-semibold mb-4 ${
+          isDark ? "text-white" : "text-gray-800"
+        }`}>
           Dataset Summary
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <p
-              className={`font-medium md:text-xl text-sm ${
-                isDark ? "text-gray-300" : "text-gray-700"
-              }`}
-            >
-              Total Rows:{" "}
-              <span className="font-normal">{summary.totalRows}</span>
+            <p className={`font-medium md:text-xl text-sm ${
+              isDark ? "text-gray-300" : "text-gray-700"
+            }`}>
+              Total Rows: <span className="font-normal">{summary.totalRows}</span>
             </p>
-            <p
-              className={`font-medium md:text-xl text-sm ${
-                isDark ? "text-gray-300" : "text-gray-700"
-              }`}
-            >
-              Numeric Columns:{" "}
-              <span className="font-normal">
+            <p className={`font-medium md:text-xl text-sm ${
+              isDark ? "text-gray-300" : "text-gray-700"
+            }`}>
+              Numeric Columns: <span className="font-normal">
                 {Object.keys(summary.numericColumns).length}
               </span>
             </p>
@@ -144,9 +179,10 @@ const InsightsDashboard = ({ data }) => {
         </div>
       </div>
 
-      {/* Chart Selection */}
+      {/* 2D Chart Section */}
       {!show3D && (
         <div
+          ref={chart2DRef}
           className={`rounded-xl md:p-4 pt-4 shadow-md ${
             isDark ? "bg-gray-800" : "bg-white"
           }`}
@@ -168,14 +204,12 @@ const InsightsDashboard = ({ data }) => {
               </button>
             ))}
           </div>
-          <div
-            ref={chartRef}
-            className="w-full h-[300px] sm:h-[400px] md:h-[500px]"
-          >
+          <div className="w-full h-[300px] sm:h-[400px] md:h-[500px]">
             <Chart2D
               chartData={graphData}
               chartType={chartType}
               isDark={isDark}
+              onChartMount={handleChartMount}
             />
           </div>
         </div>
@@ -184,15 +218,14 @@ const InsightsDashboard = ({ data }) => {
       {/* 3D Chart Section */}
       {show3D && (
         <div
+          ref={chart3DRef}
           className={`rounded-xl md:p-4 pt-4 shadow-md ${
             isDark ? "bg-gray-800" : "bg-white"
           }`}
         >
-          <h2
-            className={`text-lg font-semibold mb-4 ${
-              isDark ? "text-white" : "text-gray-800"
-            }`}
-          >
+          <h2 className={`text-lg font-semibold mb-4 ${
+            isDark ? "text-white" : "text-gray-800"
+          }`}>
             3D Visualization
           </h2>
           <div className="w-full h-[300px] sm:h-[400px] md:h-[500px]">
@@ -204,8 +237,7 @@ const InsightsDashboard = ({ data }) => {
       {/* Help Text */}
       <div className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>
         <p>
-          Tip: Click and drag to rotate 3D charts. Use mouse wheel to zoom
-          in/out.
+          Tip: Click and drag to rotate 3D charts. Use mouse wheel to zoom in/out.
         </p>
       </div>
     </div>
