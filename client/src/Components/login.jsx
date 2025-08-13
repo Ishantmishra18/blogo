@@ -33,9 +33,13 @@ const Login = () => {
   };
 
   return (
-    <div className={`min-h-screen w-full flex flex-col lg:flex-row ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+    <div className={`min-h-screen w-full flex relative flex-col lg:flex-row ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
       {isLoading && <Loading/>}
-      
+      {/*home and admin btn*/}
+      <div className="absolute top-0 p-6 left-0 flex gap-4 z-30" >
+        <Link to='/' className="rounded-xl text-sm md:text-xl px-3 md:px-5 py-2 bg-gray-300">Home</Link>
+         <Link to='/admin' className="rounded-xl text-sm md:text-xl px-3 md:px-5 py-2 bg-gray-300">Admin</Link>
+      </div>
       {/* Sidebar - hidden on mobile, shown on larger screens */}
       <div className="">
         <Sidelog/>

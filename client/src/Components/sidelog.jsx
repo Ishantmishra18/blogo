@@ -5,8 +5,7 @@ import { MdOutlineHandshake } from "react-icons/md";
 const sidelog = () => {
   return (
     <div className="w-[55vw] h-full rounded-r-[10%] shadow-lg overflow-hidden grid place-content-center bg-[url('/assets/login.webp')] bg-center bg-cover bg-black/50 relative">
-        <Link to='/' className="absolute top-6 left-6 rounded-xl px-5 py-2 bg-white">back to Home</Link>
-         <Link to='/admin' className="absolute bottom-6 left-6 rounded-xl px-5 py-2 bg-white">admin dashboard</Link>
+        
   </div>
   )
 }

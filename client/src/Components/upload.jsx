@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx';
 import { useUser } from "../Context/userContext";
 import { useTheme } from "../Context/themeContext";
 import Summary from './AIresponse';
+import LoginCard from "./loginCard";
 
 export default function UploadPage() {
   const { user } = useUser();
@@ -18,6 +19,7 @@ export default function UploadPage() {
   const [title, setTitle] = useState("");
   const [titleError, setTitleError] = useState("");
   const [headers, setHeaders] = useState([]);
+  const [showLogin , setShowLogin] = useState(false);
   const [mapping, setMapping] = useState({
     xAxis: "",
     yAxis: "",
@@ -136,7 +138,9 @@ export default function UploadPage() {
       const uploadRes = await api.post("/files/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
+      if(uploadRes.status == 401) {
+        setShowLogin(true);
+      }
       setExData(uploadRes.data.data);
       
     } catch (err) {
@@ -148,6 +152,7 @@ export default function UploadPage() {
 
   return (
     <div className={`min-h-screen pt-[16vh] pb-28 px-4 sm:px-6 lg:px-8 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+
       {/* Error Notification Card */}
       {showErrorCard && (
         <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md`}>
