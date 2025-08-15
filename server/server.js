@@ -29,9 +29,8 @@ app.use(cors({
 const jwtsec = process.env.JWT_SECRET;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER;
-const BACKEND_URL = process.env.BACKEND_URL || (isProduction ? 'https://exanalybackend.onrender.com' : `http://localhost:3000`);
-const FRONTEND_URL = process.env.FRONTEND_URL || (isProduction ? 'https://exanaly.onrender.com' : 'http://localhost:5173');
+const BACKEND_URL = process.env.BACKEND_URL 
+const FRONTEND_URL = process.env.FRONTEND_URL 
 
 passport.use(new GoogleStrategy({
     clientID: GOOGLE_CLIENT_ID,
@@ -55,9 +54,8 @@ async function(req, accessToken, refreshToken, profile, done) {
                 googleId: profile.id,
                 username: profile.displayName || `user_${profile.id.substring(0, 8)}`,
                 email: email,
-                profilePicture: profile.photos && profile.photos.length > 0 ? profile.photos[0].value : '',
+                cover: profile.photos && profile.photos.length > 0 ? profile.photos[0].value : '',
                 password: hashedPassword,
-                quiz: [0, 0]
             })
         }
 
@@ -104,23 +102,28 @@ app.get('/auth/google',
 )
 
 app.get('/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: `${FRONTEND_URL}/login` }),
-    (req, res) => {
-        const token = jwt.sign(
-            { id: req.user._id, username: req.user.username, profilePicture: req.user.profilePicture },
-            jwtsec,
-            { expiresIn: '1h' }
-        )
+  passport.authenticate('google', { 
+    failureRedirect: `${FRONTEND_URL}/login?error=google_auth_failed`,
+    session: false 
+  }),
+  (req, res) => {
+    const token = jwt.sign(
+      { id: req.user._id, username: req.user.username },
+      jwtsec,
+      { expiresIn: '7d' }
+    );
 
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: isProduction,
-            sameSite: isProduction ? 'none' : 'lax'
-        })
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      domain: isProduction ? '.onrender.com' : undefined
+    });
 
-        res.redirect(`${FRONTEND_URL}/profile`)
-    }
-)
+    res.redirect(`${FRONTEND_URL}/profile`);
+  }
+);
 
 app.use(express.json());
 app.use(cookieParser());
