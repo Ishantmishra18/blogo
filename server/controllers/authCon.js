@@ -4,16 +4,29 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 
-
-const jwtSec='ldksjflakjfdalkdj'
 export const register = async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, email } = req.body;
   try {
-    const existing = await User.findOne({ username });
-    if (existing) return res.status(400).json({ message: 'User already exists' });
+    // Check if user exists by username or email
+    const existingUser = await User.findOne({ 
+      $or: [{ username }, { email }] 
+    });
+    
+    if (existingUser) {
+      return res.status(400).json({ 
+        message: existingUser.username === username 
+          ? 'Username already exists' 
+          : 'Email already registered' 
+      });
+    }
 
-    const hashed = await bcrypt.hash(password, 10);
-    const newUser = await User.create({ username, password: hashed });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await User.create({ 
+      username, 
+      email,
+      password: hashedPassword,
+      authMethod: 'local'
+    });
 
     res.status(201).json({ message: 'User registered successfully' });
   } catch (err) {
@@ -21,6 +34,7 @@ export const register = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+
 
 
 export const login = async (req, res) => {

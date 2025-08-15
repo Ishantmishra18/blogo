@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Sidelog from './sidelog';
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Loading from './loading';
 import { useTheme } from '../Context/themeContext';
+import { FcGoogle } from "react-icons/fc";
+import { jwtDecode } from 'jwt-decode'; 
 
 const Register = () => {
   const [form, setForm] = useState({ username: '', password: '' });
@@ -12,6 +14,40 @@ const Register = () => {
   const [eye, setEye] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { isDark } = useTheme();
+  const navigate = useNavigate();
+
+  // Check for Google auth response in URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const error = urlParams.get('error');
+
+    if (token) {
+      // Handle successful Google login
+      handleGoogleLogin(token);
+    } else if (error) {
+      setError(error === 'access_denied' ? 
+        'Google login was cancelled' : 
+        'Google login failed');
+    }
+  }, []);
+
+  const handleGoogleLogin = async (token) => {
+    try {
+      // Store the token in localStorage or cookies
+      localStorage.setItem('token', token);
+      
+      // Decode token to get user info (optional)
+      const decoded = jwtDecode(token);
+      console.log('Google user:', decoded);
+      
+      // Redirect home page
+      navigate('/');
+    } catch (err) {
+      setError('Failed to process Google login');
+      console.error('Google login error:', err);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,16 +63,18 @@ const Register = () => {
     }
   };
 
+  const handleGoogleAuth = () => {
+    window.location.href = `http://localhost:3000/auth/google`;
+  };
+
   return (
     <div className={`min-h-screen w-full flex flex-col lg:flex-row ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
       {isLoading && <Loading />}
       
-      {/* Sidebar - hidden on mobile, shown on larger screens */}
       <div className="">
         <Sidelog />
       </div>
       
-      {/* Registration Form */}
       <div className={`flex-1 flex items-center justify-center p-4 sm:p-8 lg:p-12 ${
         isDark ? 'bg-gray-800' : 'bg-white'
       }`}>
@@ -50,7 +88,6 @@ const Register = () => {
             Welcome to <span className={`${isDark ? 'text-green-400' : 'text-green-700'}`}>ExAnaly</span>
           </h1>
           
-          {/* Username Input */}
           <div className="mb-6">
             <input 
               type="text" 
@@ -65,7 +102,6 @@ const Register = () => {
             />
           </div>
 
-          {/* Password Input */}
           <div className="mb-6 relative">
             <input 
               type={!eye ? "password" : 'text'} 
@@ -90,20 +126,38 @@ const Register = () => {
             </button>
           </div>
           
-          {/* Error Message */}
           {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
           
-          {/* Submit Button */}
           <button
             type="submit" 
-            className={`w-full p-4 mt-6 ${
+            className={`w-full p-4 mt-6 cursor-pointer ${
               isDark ? 'bg-green-700 hover:bg-green-600' : 'bg-green-600 hover:bg-green-700'
             } text-white font-bold rounded-md transition-colors duration-300`}
           >
             Register
           </button>
+
+          {/* Divider */}
+          <div className="flex items-center my-6">
+            <div className={`flex-1 h-px ${isDark ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+            <span className={`px-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>OR</span>
+            <div className={`flex-1 h-px ${isDark ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+          </div>
+
+         
+          <button
+            type="button"
+            onClick={handleGoogleAuth}
+            className={`flex items-center cursor-pointer justify-center gap-3 w-full p-3 rounded-md transition-all duration-200 ${
+              isDark 
+                ? 'bg-gray-700 hover:bg-gray-600 border-gray-600' 
+                : 'bg-white hover:bg-gray-50 border-gray-300'
+            } border`}
+          >
+            <FcGoogle className="text-2xl" />
+            <span className="font-medium">Continue with Google</span>
+          </button>
           
-          {/* Login Link */}
           <p className={`mt-6 text-center ${
             isDark ? 'text-gray-300' : 'text-gray-700'
           }`}>

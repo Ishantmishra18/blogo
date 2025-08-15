@@ -5,7 +5,7 @@ import XLSX from 'xlsx';
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import OpenAI from 'openai';
+
 
 // Helper: Validate Excel file structure
 const validateExcelFile = async (file) => {
