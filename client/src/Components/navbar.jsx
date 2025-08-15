@@ -49,18 +49,18 @@ const Navbar = () => {
             </Link>
           </div>
         ) : (
-          <div className="flex items-center">
+       
           <Link 
             to='/profile' 
-            className={`group md:p-4 mr-4 p-2 aspect-square rounded-full flex flex-col items-center justify-center ${isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} transition-colors duration-200 relative`}
+            className={`group  mr-4 h-full  aspect-square rounded-full ${isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} transition-colors duration-200 relative`}
           >
-            <IoPerson className={`md:text-3xl text-xl ${isDark ? 'text-gray-200' : 'text-gray-700'}`} />
+            <img src={user?.cover} alt="" className=' h-full w-full rounded-full object-cover'/>
             {/* Profile text that appears on hover */}
             <div className={`absolute top-full opacity-0  group-hover:opacity-100 -translate-y-3 rounded-xl group-hover:translate-y-0 ${isDark ? 'bg-gray-700/90 text-gray-200' : 'bg-white/90 text-gray-700'} font-semibold duration-200 px-4 py-2 text-sm`}>
               Profile
             </div>
           </Link>
-          </div>
+        
         )}
       </div>
     </nav>

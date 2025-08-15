@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect } from 'react';
 import Upload from './Components/upload';
 import HomePage from './Components/homepage';
 import { UserProvider } from './Context/userContext';
@@ -38,6 +38,15 @@ const router = createBrowserRouter([
 ])
 
 const App = () => {
+  // Add this to your main App.js or equivalent
+useEffect(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+  
+  if (token) {
+    window.history.replaceState({}, '', window.location.pathname); 
+  }
+}, []);
   return (
     <UserProvider>
       <ThemeProvider>
