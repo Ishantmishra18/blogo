@@ -101,29 +101,6 @@ app.get('/auth/google',
     passport.authenticate('google', { scope: ['profile', 'email'] })
 )
 
-app.get('/auth/google/callback',
-  passport.authenticate('google', { 
-    failureRedirect: `${FRONTEND_URL}/login?error=google_auth_failed`,
-    session: false 
-  }),
-  (req, res) => {
-    const token = jwt.sign(
-      { id: req.user._id, username: req.user.username },
-      jwtsec,
-      { expiresIn: '7d' }
-    );
-
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      domain: isProduction ? '.onrender.com' : undefined
-    });
-
-    res.redirect(`${FRONTEND_URL}/profile`);
-  }
-);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -133,32 +110,32 @@ app.use('/auth', authRoutes);
 app.use('/files', fileRoutes);
 app.use('/admin', adminRoutes);
 
-
-// Google Auth Routes
+// Error handling middleware
 app.get('/auth/google/callback',
   passport.authenticate('google', { 
-    failureRedirect: `${process.env.FRONTEND_URL}/login?error=google_auth_failed`,
+    failureRedirect: `${FRONTEND_URL}/login?error=google_auth_failed`,
     session: false 
   }),
   (req, res) => {
     // Successful authentication
     const token = jwt.sign(
-      { id: req.user._id, email: req.user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' } // Longer expiration
+      { id: req.user._id, username: req.user.username, email: req.user.email },
+      jwtsec,
+      { expiresIn: '7d' }
     );
     
-    // Set HTTP-only cookie
+    // Secure cookie configuration
     res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      httpOnly: true,  // Crucial for security
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      domain: process.env.NODE_ENV === 'production' ? '.yourdomain.com' : undefined
+      path: '/',  // Accessible across all routes
+      domain: isProduction ? 'exanaly.onrender.com' : undefined // No domain for localhost
     });
     
-    // Also include token in redirect URL for frontend access
-    res.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${token}`);
+    // Redirect to frontend
+    res.redirect(`${FRONTEND_URL}/profile`);
   }
 );
 

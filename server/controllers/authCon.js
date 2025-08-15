@@ -39,29 +39,44 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   const { username, password } = req.body;
+  
   try {
-    const user = await User.findOne({ username });
-    if (!user) return res.status(400).json({ message: 'User not found' });
-
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(400).json({ message: 'Password incorrect' });
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-
-
-  res.cookie('token', token, {
+    // 1. Find user by username or email
+    const user = await User.findOne({ 
+      $or: [{ username }, { email: username }] 
+    }).select('+password'); // Explicitly include password
+    
+    // 2. Check if user exists
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+    
+    // 3. Check if password exists (for Google-auth users)
+    if (!user.password) {
+      return res.status(401).json({ 
+        message: 'Account created with Google. Please use Google login.' 
+      });
+    }
+    
+    // 4. Compare passwords
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+    
+    // 5. Generate token and respond
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { 
+      expiresIn: '7d' 
+    });
+    
+    res.cookie('token', token, {
       httpOnly: true,
-      secure: true,           // Required for HTTPS
-      sameSite: 'None',       // Required for cross-site cookies
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
-
-    const { password: _, ...userData } = user.toObject(); // remove password
-
-    res.status(200).json({
-      message: 'Login successful',
-      user: userData,
-    });
+    
+    res.json({ user: { id: user._id, username: user.username } });
     
   } catch (err) {
     console.error('Login error:', err);
