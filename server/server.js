@@ -29,8 +29,9 @@ app.use(cors({
 const jwtsec = process.env.JWT_SECRET;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const BACKEND_URL = process.env.BACKEND_URL 
-const FRONTEND_URL = process.env.FRONTEND_URL 
+const isProduction = process.env.NODE_ENV === 'production';
+const BACKEND_URL = process.env.BACKEND_URL
+const FRONTEND_URL = process.env.FRONTEND_URL
 
 passport.use(new GoogleStrategy({
     clientID: GOOGLE_CLIENT_ID,
@@ -53,7 +54,6 @@ async function(req, accessToken, refreshToken, profile, done) {
             user = await User.create({
                 googleId: profile.id,
                 username: profile.displayName || `user_${profile.id.substring(0, 8)}`,
-                email: email,
                 cover: profile.photos && profile.photos.length > 0 ? profile.photos[0].value : '',
                 password: hashedPassword,
             })
