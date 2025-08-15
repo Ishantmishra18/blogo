@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema(
   {
-      username: { 
+    username: { 
     type: String, 
     required: function() { return this.authMethod === 'local'; } // Only required for local auth
   },

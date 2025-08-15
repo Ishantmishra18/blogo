@@ -42,9 +42,7 @@ export const login = async (req, res) => {
   
   try {
     // 1. Find user by username or email
-    const user = await User.findOne({ 
-      $or: [{ username }, { email: username }] 
-    }).select('+password'); // Explicitly include password
+    const user = await User.findOne({ username })
     
     // 2. Check if user exists
     if (!user) {
@@ -69,11 +67,11 @@ export const login = async (req, res) => {
       expiresIn: '7d' 
     });
     
-    res.cookie('token', token, {
+     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      secure: true,           // Required for HTTPS
+      sameSite: 'None',       // Required for cross-site cookies
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
     
     res.json({ user: { id: user._id, username: user.username } });
