@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import User from '../models/user.js';
 
 // For JWT/local auth
 export const jwtAuth = async (req, res, next) => {
@@ -23,19 +24,28 @@ export const googleAuth = (req, res, next) => {
 // Universal middleware (tries both methods)
 export const protect = async (req, res, next) => {
   try {
-    // Try JWT first
-    const token = req.cookies.token;
+    // 1. Try JWT from cookies or Authorization header
+    const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = { id: decoded.id };
+      req.user = await User.findById(decoded.id).select('-password');
+      if (!req.user) throw new Error('User not found');
       return next();
     }
-    
-    // Fallback to Passport session
-    if (req.isAuthenticated()) return next();
-    
+
+    // 2. Check Passport session
+    if (req.isAuthenticated()) {
+      req.user = await User.findById(req.user.id).select('-password');
+      return next();
+    }
+
+    // 3. Check Authorization header for Bearer token (API clients)
     throw new Error('No valid authentication');
   } catch (error) {
-    res.status(401).json({ message: 'Authentication required' });
+    console.error('Auth Error:', error.message);
+    res.status(401).json({ 
+      message: 'Authentication required',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };

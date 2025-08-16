@@ -22,20 +22,21 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Middle - Theme Toggle */}
-        <div className="flex items-center ">
-          <button
+        <div className="flex gap-2">
+         <button
             onClick={toggleTheme}
             className={`p-2 rounded-full cursor-pointer ${isDark ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} transition-colors`}
             aria-label="Toggle theme"
           >
             {isDark ? <IoSunny className="w-5 h-5" /> : <IoMoon className="w-5 h-5" />}
           </button>
-        </div>
-
+        
         {/* Right side - Auth buttons */}
         {!user ? ( 
           <div className="flex items-center gap-4 mr-2">
+              <div className="flex items-center ">
+         
+        </div>
             <Link 
               to="/register" 
               className={`md:px-4 px-2 py-2 rounded-sm border ${isDark ? 'bg-gray-700 border-green-400 text-green-400 hover:bg-gray-600' : 'bg-white border-green-700 text-green-700 hover:bg-green-50'} transition-colors`}
@@ -95,6 +96,7 @@ const Navbar = () => {
 </Link>
         
         )}
+        </div>
       </div>
     </nav>
   );
