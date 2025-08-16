@@ -1,36 +1,50 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
-const UserSchema = new mongoose.Schema(
-  {
-    username: { 
-    type: String, 
-    required: function() { return this.authMethod === 'local'; } // Only required for local auth
+const UserSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    minlength: 3
   },
-  password: { 
-    type: String, 
-    required: function() { return this.authMethod === 'local'; }, // Only required for local auth
-    select: false // Never return password in queries
+  password: {
+    type: String,
+    required: function() { return this.authMethod === 'local'; },
+    select: false,
+    minlength: 6
   },
-  email: { 
-    type: String, 
-    unique: true 
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true
   },
   authMethod: {
     type: String,
     enum: ['local', 'google'],
+    required: true,
     default: 'local'
   },
-  googleId: { 
+  email: {
     type: String,
     unique: true,
-    sparse: true // Allows multiple nulls (for non-Google users)
+    sparse: true,
+    lowercase: true
   },
-    cover: { type: String, default: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2NIXc73ZgxZfbifJP3Bsv35sekQyklo-9JA&s'},
-    name: String,
-    email: String,
-    history: [String],
-  }
-);
+  cover: {
+    type: String,
+    default: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2NIXc73ZgxZfbifJP3Bsv35sekQyklo-9JA&s'
+  },
+  name: String,
+  history: [String]
+}, { timestamps: true });
 
-const User = mongoose.model('User', UserSchema);
-export default User;
+// Password hashing
+UserSchema.pre('save', async function(next) {
+  if (!this.isModified('password') || this.authMethod !== 'local') return next();
+  this.password = await bcrypt.hash(this.password, 12);
+  next();
+});
+
+export default mongoose.model('User', UserSchema);

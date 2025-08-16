@@ -7,6 +7,7 @@ import { GiPieChart } from "react-icons/gi";
 import { IoSunny, IoMoon } from "react-icons/io5";
 import { useTheme } from '../Context/themeContext';
 
+
 const Navbar = () => {
   const { user } = useUser();
   const { isDark, toggleTheme } = useTheme();
@@ -50,16 +51,48 @@ const Navbar = () => {
           </div>
         ) : (
        
-          <Link 
-            to='/profile' 
-            className={`group  mr-4 h-full  aspect-square rounded-full ${isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} transition-colors duration-200 relative`}
-          >
-            <img src={user?.cover} alt="" className=' h-full w-full rounded-full object-cover'/>
-            {/* Profile text that appears on hover */}
-            <div className={`absolute top-full opacity-0  group-hover:opacity-100 -translate-y-3 rounded-xl group-hover:translate-y-0 ${isDark ? 'bg-gray-700/90 text-gray-200' : 'bg-white/90 text-gray-700'} font-semibold duration-200 px-4 py-2 text-sm`}>
-              Profile
-            </div>
-          </Link>
+          <Link
+  to="/profile"
+  className={`
+    relative mr-4 flex items-center justify-center
+    h-10 w-10 md:h-12 md:w-12 rounded-full
+    ${isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}
+    transition-all duration-200 ease-in-out
+    focus:outline-none focus:ring-2
+    ${isDark ? 'focus:ring-gray-400' : 'focus:ring-gray-500'}
+    overflow-hidden
+  `}
+  aria-label="User profile"
+>
+  {/* Profile image with better fallback */}
+
+    <img 
+      src={user?.cover} 
+      alt="User profile" 
+      className="h-full w-full object-cover"
+      loading="lazy"
+    />
+
+  {/* Tooltip with better positioning and animation */}
+  <div className={`
+    absolute z-10 left-1/2 transform -translate-x-1/2
+    top-full mt-2 px-3 py-2 rounded-lg shadow-md
+    text-sm font-medium whitespace-nowrap
+    ${isDark ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-900'}
+    opacity-0 invisible
+    group-hover:opacity-100 group-hover:visible
+    transition-all duration-200 ease-in-out
+    pointer-events-none
+  `}>
+    Profile
+    {/* Tooltip arrow */}
+    <div className={`
+      absolute -top-1 left-1/2 transform -translate-x-1/2
+      w-3 h-3 rotate-45
+      ${isDark ? 'bg-gray-800' : 'bg-white'}
+    `} />
+  </div>
+</Link>
         
         )}
       </div>

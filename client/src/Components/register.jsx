@@ -63,8 +63,10 @@ const Register = () => {
     }
   };
 
-  const handleGoogleAuth = () => {
-    window.location.href = `http://localhost:3000/auth/google`;
+   const handleGoogleAuth = () => {
+    // Store current path for post-login redirect
+    document.cookie = `auth_redirect=${window.location.pathname}; path=/; max-age=300`;
+    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/google`;
   };
 
   return (

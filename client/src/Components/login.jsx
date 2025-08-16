@@ -69,7 +69,7 @@ const Login = () => {
   };
 
   const handleGoogleAuth = () => {
-    window.location.href = 'http://localhost:3000/auth/google';
+    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/google`;
   };
 
   return (
@@ -158,9 +158,9 @@ const Login = () => {
           </div>
 
           {/* Google Sign-in Button */}
-          <button
-            type="button"
-            onClick={handleGoogleAuth}
+          <a
+            href={`${import.meta.env.VITE_BACKEND_URL}/auth/google`}
+            
             className={`flex items-center cursor-pointer justify-center gap-3 w-full p-3 rounded-md transition-all duration-200 ${
               isDark 
                 ? 'bg-gray-700 hover:bg-gray-600 border-gray-600' 
@@ -169,7 +169,7 @@ const Login = () => {
           >
             <FcGoogle className="text-2xl" />
             <span className="font-medium">Continue with Google</span>
-          </button>
+          </a>
           
           {/* Sign Up Link */}
           <p className={`mt-6 text-center ${
