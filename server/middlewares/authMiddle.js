@@ -21,6 +21,8 @@ export const googleAuth = (req, res, next) => {
   res.status(401).json({ message: 'Google authentication required' });
 };
 
+
+
 // Universal middleware (tries both methods)
 export const protect = async (req, res, next) => {
   try {

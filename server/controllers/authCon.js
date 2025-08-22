@@ -136,6 +136,7 @@ export const getMe = async (req, res) => {
       authMethod: user.authMethod,
       createdAt: user.createdAt
     });
+    
   } catch (error) {
     res.status(500).json({ 
       message: 'Server error',
