@@ -36,8 +36,9 @@ const sendAuthResponse = (res, user) => {
 
 // Controller methods
 export const register = async (req, res) => {
+  console.log("Register endpoint hit");
   try {
-    const { username, password, name } = req.body;
+    const { username, password } = req.body;
     
     const existingUser = await User.findOne({ username });
     if (existingUser) {
@@ -47,18 +48,19 @@ export const register = async (req, res) => {
     const user = await User.create({
       username,
       password,
-      name,
       authMethod: 'local'
     });
 
     sendAuthResponse(res, user);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ 
       message: 'Registration failed', 
       error: process.env.NODE_ENV === 'development' ? err.message : null 
     });
   }
 };
+
 
 export const login = async (req, res) => {
   try {

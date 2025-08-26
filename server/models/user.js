@@ -7,13 +7,11 @@ const UserSchema = new mongoose.Schema({
     required: true,
     unique: true,
     trim: true,
-    minlength: 3
   },
   password: {
     type: String,
     required: function() { return this.authMethod === 'local'; },
     select: false,
-    minlength: 6
   },
   googleId: {
     type: String,
