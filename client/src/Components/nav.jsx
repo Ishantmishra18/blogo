@@ -39,7 +39,7 @@ const NavBar = () => {
               Welcome, <span className="font-semibold text-black">{user.username}</span>
             </p>
 
-            <Link to='/profile/addpost' className='mr-32 px-5 py-3 bg-black text-white rounded-lg'>add your blog</Link>
+            <Link to='/profile/addpost' className='md:mr-32 mr-12 px-5 py-3 bg-black text-white rounded-lg'>add your blog</Link>
 
             <Link
               to="/profile"

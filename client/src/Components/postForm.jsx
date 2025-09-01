@@ -1,6 +1,12 @@
 // components/PostForm.jsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { CiCirclePlus } from "react-icons/ci";
+
+// --- New imports for the rich text editor (Tiptap) ---
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { FaBold, FaItalic, FaStrikethrough, FaCode } from "react-icons/fa";
+// ----------------------------------------------------
 
 const PostForm = ({
   initialData = {},
@@ -12,14 +18,20 @@ const PostForm = ({
 }) => {
   const [formData, setFormData] = useState({
     title: initialData.title || '',
-    description: initialData.description || '',
-    ...initialData
   });
 
   const [selectedCoverOption, setSelectedCoverOption] = useState('');
-  const textareaRef = useRef(null);
 
-  // Predefined cover options
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: initialData.description || '<p>Write your blog description here...</p>',
+    editorProps: {
+      attributes: {
+        class: 'prose max-w-none focus:outline-none min-h-[300px] p-3', // Apply prose for basic typography, remove outline, set min-height
+      },
+    },
+  });
+
   const coverOptions = [
     'https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
     'https://images.unsplash.com/photo-1455390582262-044cdead277a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
@@ -44,61 +56,66 @@ const PostForm = ({
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!selectedCoverOption) {
       alert('Please select a cover image');
       return;
     }
-    
-    // Send data to backend: title, description, and cover URL
+
+    const descriptionHtml = editor ? editor.getHTML() : ''; // Safely get HTML
+    if (!descriptionHtml || descriptionHtml === '<p></p>') {
+      alert('Please write a description for your blog');
+      return;
+    }
+
     onSubmit({
       title: formData.title,
-      description: formData.description,
+      description: descriptionHtml,
       cover: selectedCoverOption
     });
   };
 
-  // Simple text formatting functions
-  const formatText = (format) => {
-    if (!textareaRef.current) return;
-    
-    const textarea = textareaRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = formData.description.substring(start, end);
-    const before = formData.description.substring(0, start);
-    const after = formData.description.substring(end);
-    
-    let formattedText = selectedText;
-    
-    switch (format) {
-      case 'bold':
-        formattedText = `**${selectedText}**`;
-        break;
-      case 'italic':
-        formattedText = `_${selectedText}_`;
-        break;
-      case 'underline':
-        formattedText = `<u>${selectedText}</u>`;
-        break;
-      case 'code':
-        formattedText = `\`${selectedText}\``;
-        break;
-      case 'link':
-        formattedText = `[${selectedText}](url)`;
-        break;
-      default:
-        break;
+  const MenuBar = ({ editor }) => {
+    if (!editor) {
+      return null;
     }
-    
-    const newDescription = before + formattedText + after;
-    setFormData(prev => ({ ...prev, description: newDescription }));
-    
-    // Set cursor position after the formatted text
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + formattedText.length, start + formattedText.length);
-    }, 0);
+
+    return (
+      <div className="flex flex-wrap gap-2 mb-2 p-2 bg-gray-100 rounded-lg">
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleBold().run()}
+          disabled={!editor.can().chain().focus().toggleBold().run()}
+          className={`px-3 py-1 bg-white border rounded-md hover:bg-gray-50 ${editor.isActive('bold') ? 'is-active bg-gray-200' : ''}`}
+        >
+          <FaBold />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+          disabled={!editor.can().chain().focus().toggleItalic().run()}
+          className={`px-3 py-1 bg-white border rounded-md hover:bg-gray-50 ${editor.isActive('italic') ? 'is-active bg-gray-200' : ''}`}
+        >
+          <FaItalic />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleStrike().run()}
+          disabled={!editor.can().chain().focus().toggleStrike().run()}
+          className={`px-3 py-1 bg-white border rounded-md hover:bg-gray-50 ${editor.isActive('strike') ? 'is-active bg-gray-200' : ''}`}
+        >
+          <FaStrikethrough />
+        </button>
+        <button
+          type="button"
+          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+          disabled={!editor.can().chain().focus().toggleCodeBlock().run()}
+          className={`px-3 py-1 bg-white border rounded-md hover:bg-gray-50 ${editor.isActive('codeBlock') ? 'is-active bg-gray-200' : ''}`}
+        >
+          <FaCode />
+        </button>
+      </div>
+    );
   };
 
   return (
@@ -106,13 +123,13 @@ const PostForm = ({
       {/* Form Section */}
       <form onSubmit={handleFormSubmit} className="w-full lg:w-[65%] p-4 sm:p-6 md:p-8 flex flex-col">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">{submitLabel}</h2>
-        
+
         {successMsg && (
           <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg border border-green-200">
             {successMsg}
           </div>
         )}
-        
+
         {errorMsg && (
           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg border border-red-200">
             {errorMsg}
@@ -122,63 +139,34 @@ const PostForm = ({
         <div className="space-y-6">
           <div>
             <label className="text-sm font-medium text-gray-700">Title *</label>
-            <input 
-              type="text" 
-              name="title" 
-              value={formData.title} 
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
               onChange={handleChange}
-              className="w-full mt-1 p-3 bg-white rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-              required 
+              className="w-full mt-1 p-3 bg-white rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
               placeholder="Enter your blog title"
             />
           </div>
 
           <div>
             <label className="text-sm font-medium text-gray-700">Description *</label>
-            
-            {/* Simple formatting toolbar */}
-            <div className="flex flex-wrap gap-2 mb-2 p-2 bg-gray-100 rounded-lg">
-              <button type="button" onClick={() => formatText('bold')} className="px-3 py-1 bg-white border rounded-md hover:bg-gray-50">
-                <strong>B</strong>
-              </button>
-              <button type="button" onClick={() => formatText('italic')} className="px-3 py-1 bg-white border rounded-md hover:bg-gray-50">
-                <em>I</em>
-              </button>
-              <button type="button" onClick={() => formatText('underline')} className="px-3 py-1 bg-white border rounded-md hover:bg-gray-50">
-                <u>U</u>
-              </button>
-              <button type="button" onClick={() => formatText('code')} className="px-3 py-1 bg-white border rounded-md hover:bg-gray-50">
-                Code
-              </button>
-              <button type="button" onClick={() => formatText('link')} className="px-3 py-1 bg-white border rounded-md hover:bg-gray-50">
-                Link
-              </button>
-            </div>
-            
-            <textarea 
-              ref={textareaRef}
-              name="description" 
-              value={formData.description} 
-              onChange={handleChange}
-              className="w-full mt-1 p-3 bg-white rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              rows="12"
-              required
-              placeholder="Write your blog description here..."
-            />
-            
-            <div className="mt-2 text-sm text-gray-500">
-              <p>Formatting tips:</p>
-              <ul className="list-disc list-inside ml-4">
-                <li>**bold** for <strong>bold text</strong></li>
-                <li>_italic_ for <em>italic text</em></li>
-                <li>`code` for <code>inline code</code></li>
-                <li>[link text](url) for hyperlinks</li>
-              </ul>
+
+            {/* Tiptap Menu Bar */}
+            <MenuBar editor={editor} />
+
+            {/* Tiptap Editor */}
+            <div className="editor-container border border-gray-300 rounded-xl mt-1 overflow-hidden">
+              <EditorContent
+                editor={editor}
+                className="bg-white focus-within:bg-gray-200 transition-colors duration-200"
+              />
             </div>
           </div>
 
           <div className="flex justify-end pt-4">
-            <button 
+            <button
               type="submit"
               className={`bg-black text-white px-6 py-3 rounded-xl hover:translate-x-1 cursor-pointer transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
               disabled={loading}
@@ -194,14 +182,14 @@ const PostForm = ({
         <div className="w-full">
           <h2 className="text-white text-xl font-semibold mb-3 sm:mb-4">Cover Image</h2>
           <p className="text-gray-400 text-sm mb-3 sm:mb-4">Select a cover image for your blog</p>
-          
+
           {/* Selected Cover Preview */}
           {selectedCoverOption ? (
             <div className="w-full aspect-video rounded-xl sm:rounded-2xl overflow-hidden relative mb-4 sm:mb-6 border-2 border-blue-500">
-              <img 
-                src={selectedCoverOption} 
-                alt="Selected cover" 
-                className="w-full h-full object-cover" 
+              <img
+                src={selectedCoverOption}
+                alt="Selected cover"
+                className="w-full h-full object-cover"
               />
               <button
                 type="button"
@@ -228,16 +216,16 @@ const PostForm = ({
                 <div
                   key={index}
                   className={`relative aspect-video rounded-md sm:rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
-                    selectedCoverOption === option 
-                      ? 'border-blue-500 ring-2 ring-blue-300 ring-opacity-50' 
+                    selectedCoverOption === option
+                      ? 'border-blue-500 ring-2 ring-blue-300 ring-opacity-50'
                       : 'border-gray-600 hover:border-gray-400'
                   }`}
                   onClick={() => handleSelectCoverOption(option)}
                 >
-                  <img 
-                    src={option} 
-                    alt={`Cover option ${index + 1}`} 
-                    className="w-full h-full object-cover" 
+                  <img
+                    src={option}
+                    alt={`Cover option ${index + 1}`}
+                    className="w-full h-full object-cover"
                   />
                   {selectedCoverOption === option && (
                     <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
@@ -255,26 +243,23 @@ const PostForm = ({
         </div>
 
         {/* Blog Preview */}
-        {(formData.title || formData.description) && (
+        {editor && (formData.title || editor.getText().length > 0) && (
           <div className="w-full mt-4 sm:mt-6">
             <h3 className="text-white text-base sm:text-lg font-medium mb-2 sm:mb-3">Preview:</h3>
             <div className="bg-white rounded-lg p-3 sm:p-4 shadow-lg">
               {selectedCoverOption && (
-                <img 
-                  src={selectedCoverOption} 
-                  alt="Cover preview" 
+                <img
+                  src={selectedCoverOption}
+                  alt="Cover preview"
                   className="w-full h-32 sm:h-40 object-cover rounded-md mb-2 sm:mb-3"
                 />
               )}
               {formData.title && (
                 <h4 className="text-base sm:text-lg font-semibold text-gray-800 mb-1 sm:mb-2">{formData.title}</h4>
               )}
-              {formData.description && (
+              {editor.getText().length > 0 && (
                 <div className="text-gray-600 text-xs sm:text-sm">
-                  {formData.description.length > 120 
-                    ? formData.description.substring(0, 120) + '...' 
-                    : formData.description
-                  }
+                  {editor.getText().substring(0, 120)}...
                 </div>
               )}
             </div>
