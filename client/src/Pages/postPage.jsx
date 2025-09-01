@@ -163,7 +163,7 @@ const RoomDetails = ({ userBookmarks = [] }) => {
               comments.map((comment, index) => (
                 <div key={index} className="flex items-start space-x-4">
                   <img
-                    src={comment.owner?.cover || 'https://via.placeholder.com/40'}
+                    src={comment.owner.cover}
                     alt={comment.owner?.username}
                     className="w-10 h-10 rounded-full object-cover border border-gray-200"
                   />

@@ -67,7 +67,7 @@ const EditPost = () => {
       loading={loading}
       successMsg={successMsg}
       errorMsg={errorMsg}
-      submitLabel="Update Listing"
+      submitLabel="Update your Blog"
     />
   );
 };
