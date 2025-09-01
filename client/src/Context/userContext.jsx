@@ -1,5 +1,6 @@
 // src/context/UserContext.js
 import React ,{ createContext, useContext, useEffect, useState } from 'react';
+import axios from 'axios';
 import api from '../utils/api';
 
 
@@ -15,7 +16,7 @@ export const UserProvider = ({ children }) => {
         const res = await api.get('/auth/me');
         setUser(res.data);
       } catch (err) {
-        console.error("User fetch failed", err);
+        console.error("User fetch failed", err); // Add this line
         setUser(null);
       }
     };

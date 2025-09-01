@@ -1,57 +1,69 @@
-import React, { useState , useEffect } from 'react';
-import Upload from './Components/upload';
-import HomePage from './Components/homepage';
+import React from 'react';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import Navbar from './Components/nav';
+import Login from './Pages/login';
+import Register from './Pages/register';
+import HomePost from './Pages/postPage';
+import ProfilePage from './Pages/profilePage';
 import { UserProvider } from './Context/userContext';
-import { RouterProvider, Route , Router , createBrowserRouter } from 'react-router-dom';
-import Login from './Components/login';
-import Register from './Components/register';
-import Navbar from './Components/navbar';
-import Profile from './Components/profile';
-import { ThemeProvider } from './Context/themeContext';
-import Admin from './Components/adminPanel';
-
+import { PostProvider } from './Context/postContext';
+import AddPost from './Pages/addPost';
+import ListingPage from './Pages/listingPage';
+import Bookmark from './Pages/bookmark';
+import EditProfile from './Pages/editUser';
+import EditPost from './Pages/editPost';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: (
       <>
-        <HomePage></HomePage>   
+        <ListingPage />
+       
       </>
     ),
-  },{
-    path:'/login',
-    element: <Login/>
-  },{
-    path:'/register',
-    element:<Register/>
-  },{
-    path:'/upload',
-    element:<><Navbar/><Upload/></>
-  },{
+  },
+  {
+    path: '/login',
+    element: <Login />,
+  },
+  {
+    path: '/register',
+    element: <Register />,
+  },
+  {
+    path: '/listing/:postID',
+    element: (
+      <>
+        <Navbar />
+        <HomePost />
+      </>
+    ),
+  },
+  {
     path:'/profile',
-    element:<><Profile/></>
+    element:<ProfilePage/>
   },{
-    path:'/admin',
-    element:<><Admin/></>
+    path:'/profile/addpost',
+    element:<AddPost/>
+  },{
+    path:'/profile/editpost/:postId',
+    element:<EditPost/>
+  },{
+    path:'/profile/bookmark',
+    element:<Bookmark/>
+  },{
+    path:'/profile/edit',
+    element:<EditProfile/>
   }
-])
+]);
 
 const App = () => {
-  // Add this to your main App.js or equivalent
-useEffect(() => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get('token');
-  
-  if (token) {
-    window.history.replaceState({}, '', window.location.pathname); 
-  }
-}, []);
   return (
     <UserProvider>
-      <ThemeProvider>
+      <PostProvider>
       <RouterProvider router={router} />
-      </ThemeProvider>
+      </PostProvider>
     </UserProvider>
   );
 };
