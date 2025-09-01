@@ -1,7 +1,7 @@
 import React from 'react';
 import { useUser } from '../Context/userContext';
 import { usePost } from '../Context/postContext';
-import RoomPost from '../Components/roomPost';
+import RoomPost from '../Components/blogPost';
 import Loader from '../Components/loader';
 
 const Bookmark = () => {

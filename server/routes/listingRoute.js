@@ -8,6 +8,8 @@ import {
   getListingById,
   getAllListings,
   getUserListings,
+  getPostComments,
+  addComment,
 } from '../controllers/listingController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import upload from '../middleware/upload.js';
@@ -32,6 +34,11 @@ router.get('/:id', getListingById);
 
 // Get all listings by a specific user (e.g. "My Listings")
 router.get('/mypost/:userId', protect, getUserListings);
+
+// Get all comments for a specific listing
+router.get('/:id/comments', protect, getPostComments);
+
+router.post('/:id/comment', protect, addComment); 
 
 
 export default router;

@@ -12,7 +12,7 @@ const postSchema = new mongoose.Schema(
       required: [true, "Post must have a description"],
     },
     cover:{
-        type: String, // URLs to uploaded images (can store Cloudinary URLs etc.)
+        type: String,
       }
     ,
     likes:[{

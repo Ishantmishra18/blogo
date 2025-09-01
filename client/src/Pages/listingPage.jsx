@@ -1,35 +1,36 @@
 import React from 'react';
-import { usePost } from '../Context/postContext';
+import { usePost } from '../Context/postContext'; // Assuming this context provides blog post data
 import Nav from '../Components/nav';
-import RoomPost from '../Components/roomPost';
+import BlogPosts from '../Components/blogPost'; // A new component to display blog posts
 
-const ListingPage = () => {
-  const { posts } = usePost(); 
+const BlogPage = () => {
+  // We'll use the 'posts' from the context, assuming they are now blog posts
+  const { posts } = usePost();
 
   return (
-    <div className=" bg-gray-100">
+    <div className="bg-gray-100 min-h-screen flex flex-col">
       <Nav />
-      <div className="flex py-10">
+      
+      <div className="container mx-auto px-4 py-10 flex-grow">
+        <header className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-800">Our Blog</h1>
+          <p className="text-lg text-gray-600 mt-2">Insights, stories, and updates from our team.</p>
+        </header>
 
-        <div className="flex flex-col min-h-screen items-center w-screen gap-5 p-10">
-        {posts?.map((val, key) => (
-        <RoomPost post={val} key={key}/>
-        ))}
+        {/* This is the main content area for the blog posts */}
+         {posts?.map((val, key) => (
+
+      <BlogPosts post={val} key={key}/>
+  ))}
       </div>
-     
-      </div>
 
-      <footer className="bg-black text-white py-6 mt-10">
-  <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
-    <p className="text-sm">&copy; 2025 YourCompany. All rights reserved.</p>
-    <div className="flex space-x-4 mt-4 md:mt-0">
-    </div>
-  </div>
-</footer>
-
-  
+      <footer className="bg-gray-800 text-white py-6">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-sm">&copy; 2025 YourCompany. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 };
 
-export default ListingPage;
+export default BlogPage;

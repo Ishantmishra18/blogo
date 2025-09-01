@@ -12,11 +12,11 @@ const PostForm = ({
 }) => {
   const [formData, setFormData] = useState({
     title: initialData.title || '',
-    content: initialData.content || '',
+    description: initialData.description || '',
     ...initialData
   });
 
-  const [selectedCoverOption, setSelectedCoverOption] = useState(initialData.coverUrl || null);
+  const [selectedCoverOption, setSelectedCoverOption] = useState('');
   const textareaRef = useRef(null);
 
   // Predefined cover options
@@ -50,9 +50,10 @@ const PostForm = ({
       return;
     }
     
-    // Pass the selected cover URL to the backend
+    // Send data to backend: title, description, and cover URL
     onSubmit({
-      ...formData,
+      title: formData.title,
+      description: formData.description,
       cover: selectedCoverOption
     });
   };
@@ -64,9 +65,9 @@ const PostForm = ({
     const textarea = textareaRef.current;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const selectedText = formData.content.substring(start, end);
-    const before = formData.content.substring(0, start);
-    const after = formData.content.substring(end);
+    const selectedText = formData.description.substring(start, end);
+    const before = formData.description.substring(0, start);
+    const after = formData.description.substring(end);
     
     let formattedText = selectedText;
     
@@ -90,8 +91,8 @@ const PostForm = ({
         break;
     }
     
-    const newContent = before + formattedText + after;
-    setFormData(prev => ({ ...prev, content: newContent }));
+    const newDescription = before + formattedText + after;
+    setFormData(prev => ({ ...prev, description: newDescription }));
     
     // Set cursor position after the formatted text
     setTimeout(() => {
@@ -101,9 +102,9 @@ const PostForm = ({
   };
 
   return (
-    <div className="min-h-screen flex flex-col-reverse lg:flex-row w-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col-reverse lg:flex-row w-full bg-gray-50 overflow-x-hidden">
       {/* Form Section */}
-      <form onSubmit={handleFormSubmit} className="w-full lg:w-[65%] p-6 sm:p-10 flex flex-col">
+      <form onSubmit={handleFormSubmit} className="w-full lg:w-[65%] p-4 sm:p-6 md:p-8 flex flex-col">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">{submitLabel}</h2>
         
         {successMsg && (
@@ -133,7 +134,7 @@ const PostForm = ({
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Content *</label>
+            <label className="text-sm font-medium text-gray-700">Description *</label>
             
             {/* Simple formatting toolbar */}
             <div className="flex flex-wrap gap-2 mb-2 p-2 bg-gray-100 rounded-lg">
@@ -156,13 +157,13 @@ const PostForm = ({
             
             <textarea 
               ref={textareaRef}
-              name="content" 
-              value={formData.content} 
+              name="description" 
+              value={formData.description} 
               onChange={handleChange}
               className="w-full mt-1 p-3 bg-white rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              rows="15"
+              rows="12"
               required
-              placeholder="Write your blog content here..."
+              placeholder="Write your blog description here..."
             />
             
             <div className="mt-2 text-sm text-gray-500">
@@ -179,7 +180,7 @@ const PostForm = ({
           <div className="flex justify-end pt-4">
             <button 
               type="submit"
-              className={`bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 cursor-pointer transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
               disabled={loading}
             >
               {loading ? 'Publishing...' : submitLabel}
@@ -189,14 +190,14 @@ const PostForm = ({
       </form>
 
       {/* Preview Section */}
-      <div className="w-full lg:w-[35%] bg-gradient-to-b from-neutral-900 to-gray-800 flex flex-col items-start p-6 gap-6">
+      <div className="w-full lg:w-[35%] bg-gradient-to-b from-neutral-900 to-gray-800 flex flex-col items-start p-4 sm:p-6 gap-4 sm:gap-6">
         <div className="w-full">
-          <h2 className="text-white text-xl font-semibold mb-4">Cover Image</h2>
-          <p className="text-gray-400 text-sm mb-4">Select a cover image for your blog</p>
+          <h2 className="text-white text-xl font-semibold mb-3 sm:mb-4">Cover Image</h2>
+          <p className="text-gray-400 text-sm mb-3 sm:mb-4">Select a cover image for your blog</p>
           
           {/* Selected Cover Preview */}
           {selectedCoverOption ? (
-            <div className="w-full aspect-video rounded-2xl overflow-hidden relative mb-6 border-2 border-blue-500">
+            <div className="w-full aspect-video rounded-xl sm:rounded-2xl overflow-hidden relative mb-4 sm:mb-6 border-2 border-blue-500">
               <img 
                 src={selectedCoverOption} 
                 alt="Selected cover" 
@@ -204,31 +205,31 @@ const PostForm = ({
               />
               <button
                 type="button"
-                className="absolute top-3 right-3 text-white bg-red-600 rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-red-700 transition shadow-lg"
+                className="absolute top-2 right-2 sm:top-3 sm:right-3 text-white bg-red-600 rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-sm hover:bg-red-700 transition shadow-lg"
                 onClick={handleRemoveCover}
               >
                 ✕
               </button>
             </div>
           ) : (
-            <div className="w-full aspect-video rounded-2xl overflow-hidden border-2 border-dashed border-gray-600 flex items-center justify-center mb-6">
+            <div className="w-full aspect-video rounded-xl sm:rounded-2xl overflow-hidden border-2 border-dashed border-gray-600 flex items-center justify-center mb-4 sm:mb-6">
               <div className="text-center text-gray-400">
-                <CiCirclePlus className="text-4xl mx-auto mb-2" />
-                <p className="text-sm">No cover selected</p>
+                <CiCirclePlus className="text-3xl sm:text-4xl mx-auto mb-1 sm:mb-2" />
+                <p className="text-xs sm:text-sm">No cover selected</p>
               </div>
             </div>
           )}
 
           {/* Cover Options */}
           <div>
-            <h3 className="text-white text-sm font-medium mb-3">Choose a cover image:</h3>
-            <div className="grid grid-cols-2 gap-3">
+            <h3 className="text-white text-sm font-medium mb-2 sm:mb-3">Choose a cover image:</h3>
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {coverOptions.map((option, index) => (
                 <div
                   key={index}
-                  className={`relative aspect-video rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
+                  className={`relative aspect-video rounded-md sm:rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
                     selectedCoverOption === option 
-                      ? 'border-blue-500 ring-2 ring-blue-300 ring-opacity-50 scale-105' 
+                      ? 'border-blue-500 ring-2 ring-blue-300 ring-opacity-50' 
                       : 'border-gray-600 hover:border-gray-400'
                   }`}
                   onClick={() => handleSelectCoverOption(option)}
@@ -240,8 +241,8 @@ const PostForm = ({
                   />
                   {selectedCoverOption === option && (
                     <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
-                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
-                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                        <svg className="w-2 h-2 sm:w-3 sm:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
                         </svg>
                       </div>
@@ -254,31 +255,31 @@ const PostForm = ({
         </div>
 
         {/* Blog Preview */}
-        {formData.title || formData.content ? (
-          <div className="w-full mt-6">
-            <h3 className="text-white text-lg font-medium mb-3">Preview:</h3>
-            <div className="bg-white rounded-lg p-4 shadow-lg">
+        {(formData.title || formData.description) && (
+          <div className="w-full mt-4 sm:mt-6">
+            <h3 className="text-white text-base sm:text-lg font-medium mb-2 sm:mb-3">Preview:</h3>
+            <div className="bg-white rounded-lg p-3 sm:p-4 shadow-lg">
               {selectedCoverOption && (
                 <img 
                   src={selectedCoverOption} 
                   alt="Cover preview" 
-                  className="w-full h-40 object-cover rounded-md mb-3"
+                  className="w-full h-32 sm:h-40 object-cover rounded-md mb-2 sm:mb-3"
                 />
               )}
               {formData.title && (
-                <h4 className="text-lg font-semibold text-gray-800 mb-2">{formData.title}</h4>
+                <h4 className="text-base sm:text-lg font-semibold text-gray-800 mb-1 sm:mb-2">{formData.title}</h4>
               )}
-              {formData.content && (
-                <div className="text-gray-600 text-sm">
-                  {formData.content.length > 150 
-                    ? formData.content.substring(0, 150) + '...' 
-                    : formData.content
+              {formData.description && (
+                <div className="text-gray-600 text-xs sm:text-sm">
+                  {formData.description.length > 120 
+                    ? formData.description.substring(0, 120) + '...' 
+                    : formData.description
                   }
                 </div>
               )}
             </div>
           </div>
-        ) : null}
+        )}
       </div>
     </div>
   );

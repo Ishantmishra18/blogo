@@ -2,6 +2,8 @@
 
 import Post from '../models/postSchema.js';
 import User from '../models/userSchema.js';
+import Comment from '../models/commentSchema.js';
+import e from 'express';
 
 // @desc    Create a new listing
 // @route   POST /api/listings
@@ -110,3 +112,30 @@ export const getUserListings = async (req, res) => {
   }
 };
 
+
+export const getPostComments = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    const comments = await Comment.find({ post: req.params.id }).populate('owner', 'username avatar').sort({ createdAt: -1 });
+    res.status(200).json({ comments });
+  }
+    catch (error) { 
+    res.status(500).json({ message: 'Failed to fetch comments', error });
+  }
+    }
+
+export const addComment = async (req, res) => {
+  try {
+    const { text } = req.body;
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post not found' });  
+    const newComment = await Comment.create({
+      post: req.params.id,
+      owner: req.user.id,   
+        text,
+    });
+    res.status(201).json(newComment);
+  }
+  catch (error) {
+    res.status(500).json({ message: 'Failed to add comment', error });
+  } }
