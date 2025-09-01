@@ -180,7 +180,7 @@ const PostForm = ({
           <div className="flex justify-end pt-4">
             <button 
               type="submit"
-              className={`bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`bg-black text-white px-6 py-3 rounded-xl hover:translate-x-1 cursor-pointer transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
               disabled={loading}
             >
               {loading ? 'Publishing...' : submitLabel}

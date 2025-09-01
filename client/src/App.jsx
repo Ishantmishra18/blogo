@@ -13,16 +13,30 @@ import Bookmark from './Pages/bookmark';
 import EditProfile from './Pages/editUser';
 import EditPost from './Pages/editPost';
 import YourPost from './Pages/yourPost';
+import Admin from './Pages/admin';
+import Footer from './Components/footer';
+import Home from './Pages/home';
 
 const router = createBrowserRouter([
   {
-    path: '/',
+    path: '/blog',
     element: (
       <>
         <ListingPage />
+        <Footer />
        
       </>
     ),
+  },{
+    path:'/admin',
+    element:<Admin/>
+  },{
+    path:'/',
+    element:<>
+    <Navbar/>
+    <Home></Home>
+    <Footer></Footer>
+    </>
   },
   {
     path: '/login',
@@ -38,6 +52,7 @@ const router = createBrowserRouter([
       <>
         <Navbar />
         <HomePost />
+        <Footer />
       </>
     ),
   },

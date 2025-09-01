@@ -32,7 +32,7 @@ const BlogPage = () => {
       <Nav />
         
       <div className="container mx-auto px-4 py-8 flex-grow">
-        {/* Improved Header Section */}
+       
         <header className="mb-10 md:mb-12 text-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-4">
             Our Blog
@@ -41,7 +41,7 @@ const BlogPage = () => {
             Discover insights, stories, and updates from our team
           </p>
           
-          {/* Enhanced Search Bar with Icon */}
+         
           <div className="max-w-md mx-auto relative">
             <div className="relative">
               <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl" />
@@ -59,6 +59,7 @@ const BlogPage = () => {
               </p>
             )}
           </div>
+         
         </header>
 
         {/* Blog Posts Grid */}
@@ -95,19 +96,7 @@ const BlogPage = () => {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8 mt-12">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <p className="text-sm md:text-base">&copy; 2025 YourCompany. All rights reserved.</p>
-            <div className="flex justify-center space-x-6 mt-4">
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</a>
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">Terms of Service</a>
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">Contact</a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      
     </div>
   );
 };

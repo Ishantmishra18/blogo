@@ -8,7 +8,7 @@ const NavBar = () => {
   const { user } = useUser();
 
   return (
-    <nav className="bg-white shadow-md h-[10vh] px-6 py-3 flex justify-between items-center sticky top-0 z-40">
+    <nav className="bg-white shadow-md h-[14vh] px-6 py-3 flex justify-between items-center sticky top-0 z-40">
       {/* Brand */}
       <Link to="/" className="text-2xl font-extrabold text-black">
         Blogo
@@ -38,6 +38,8 @@ const NavBar = () => {
             <p className="text-gray-700 font-medium hidden sm:block">
               Welcome, <span className="font-semibold text-black">{user.username}</span>
             </p>
+
+            <Link to='/profile/addpost' className='mr-32 px-5 py-3 bg-black text-white rounded-lg'>add your blog</Link>
 
             <Link
               to="/profile"
