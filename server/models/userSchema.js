@@ -17,7 +17,6 @@ const UserSchema = new mongoose.Schema(
     phone: String,
     dob: Date,
     gender: String,
-    language: String,
     bio: String,
   },
   { timestamps: true }
