@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from '../Context/userContext.jsx';
-import { usePost } from '../Context/postContext.jsx';
+import api from '../utils/api.js';
+
 
 const Admin = () => {
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState('');
-
-  const { users } = useUser();
-  const { posts } = usePost();
+  const [users, setUsers] = useState(null);
+  const [posts, setPosts] = useState(null);
 
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
@@ -58,15 +57,17 @@ const Admin = () => {
     );
   }
 
-  // Group posts by owner
-  const postsByUser = posts.reduce((acc, post) => {
-    const ownerId = post.owner;
-    if (!acc[ownerId]) {
-      acc[ownerId] = [];
+  
+ useEffect(() => {
+    const fetchData = async() =>{
+            const response = await api.get('/admin/getData')
+            setUsers(response.data.users);
+            setPosts(response.data.posts);
+        }
+    if(isAuthenticated){
+        fetchData();
     }
-    acc[ownerId].push(post);
-    return acc;
-  }, {});
+ },[])
 
   return (
     <div className="min-h-[88vh] bg-gray-100 p-6 sm:p-10">

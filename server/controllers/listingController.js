@@ -3,7 +3,7 @@
 import Post from '../models/postSchema.js';
 import User from '../models/userSchema.js';
 import Comment from '../models/commentSchema.js';
-import e from 'express';
+
 
 // @desc    Create a new listing
 // @route   POST /api/listings

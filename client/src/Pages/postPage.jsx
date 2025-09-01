@@ -42,19 +42,6 @@ const RoomDetails = ({ userBookmarks = [] }) => {
     fetchData();
   }, [userBookmarks, postID]);
 
-  const handleLike = async () => {
-    try {
-      if (liked) {
-        await api.delete(`/user/like/${postID}`);
-      } else {
-        await api.post(`/user/like/${postID}`);
-      }
-      setLiked(!liked);
-    } catch (err) {
-      console.error('Like error:', err);
-    }
-  };
-
   const handleBookmark = async () => {
     try {
       if (bookmarked) {
@@ -110,7 +97,7 @@ const RoomDetails = ({ userBookmarks = [] }) => {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-6">
-          <button onClick={handleLike} className="text-2xl transition-transform transform hover:scale-110">
+          <button onClick={()=>{setLiked(prev=>!prev)}} className="text-2xl transition-transform transform hover:scale-110">
             {liked ? <FaHeart className="text-red-500" /> : <FaRegHeart className="text-gray-500 hover:text-red-500" />}
           </button>
           <button onClick={handleBookmark} className="text-2xl transition-transform transform hover:scale-110">

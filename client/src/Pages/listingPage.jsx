@@ -42,7 +42,7 @@ const BlogPage = () => {
           </p>
           
          
-          <div className="max-w-md mx-auto relative">
+          <div className="max-w-md mx-auto sticky top-[20vh]">
             <div className="relative">
               <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl" />
               <input 

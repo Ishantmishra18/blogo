@@ -7,13 +7,14 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/authRoute.js';
 import listingRoutes from './routes/listingRoute.js';
 import userRoute from './routes/userRoute.js';
+import adminRoute from './routes/adminRoute.js'
 import cors from 'cors';
 
 const app = express();
 connectDB();
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://travo-1.onrender.com'],
+  origin: ['http://localhost:5173', 'https://blogo-og03.onrender.com'],
   credentials: true,
 }));
 
@@ -27,6 +28,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/listing', listingRoutes);
 app.use('/api/user', userRoute);
+app.use('/api/admin' , adminRoute);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

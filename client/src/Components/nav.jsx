@@ -39,11 +39,11 @@ const NavBar = () => {
               Welcome, <span className="font-semibold text-black">{user.username}</span>
             </p>
 
-            <Link to='/profile/addpost' className='md:mr-32 mr-12 px-5 py-3 bg-black text-white rounded-lg'>add your blog</Link>
+            <Link to='/profile/addpost' className='md:mr-32 mr-12 px-5 py-3 bg-black text-white rounded-full'>add your blog</Link>
 
             <Link
               to="/profile"
-              className="h-10 w-10 rounded-full overflow-hidden border-2 border-gray-300"
+              className="h-14 w-14 rounded-full overflow-hidden border-2 border-gray-300"
             >
               {user.cover ? (
                 <img
