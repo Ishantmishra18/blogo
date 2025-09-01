@@ -14,11 +14,8 @@ export default function EditProfile() {
   const [formData, setFormData] = useState({
     name: user?.name,
     email: '',
-    phone: user.phone,
     dob: '',
-    location: '',
     gender: '',
-    language: '',
     bio: '',
   });
 
@@ -106,14 +103,7 @@ export default function EditProfile() {
               placeholder="Email"
               className="py-3 px-4 bg-gray-100 rounded-lg focus:bg-gray-200 outline-none"
             />
-            <input
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              type="tel"
-              placeholder="Phone"
-              className="py-3 px-4 bg-gray-100 rounded-lg focus:bg-gray-200 outline-none"
-            />
+         
             <input
               name="dob"
               value={formData.dob}
@@ -121,14 +111,7 @@ export default function EditProfile() {
               type="date"
               className="py-3 px-4 bg-gray-100 rounded-lg focus:bg-gray-200 outline-none"
             />
-            <input
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
-              type="text"
-              placeholder="Location"
-              className="py-3 px-4 bg-gray-100 rounded-lg focus:bg-gray-200 outline-none"
-            />
+           
             <select
               name="gender"
               value={formData.gender}
@@ -139,18 +122,6 @@ export default function EditProfile() {
               <option>Male</option>
               <option>Female</option>
               <option>Other</option>
-            </select>
-            <select
-              name="language"
-              value={formData.language}
-              onChange={handleChange}
-              className="py-3 px-4 bg-gray-100 rounded-lg focus:bg-gray-200 outline-none"
-            >
-              <option value="">Select Language</option>
-              <option>English</option>
-              <option>Hindi</option>
-              <option>Spanish</option>
-              <option>French</option>
             </select>
           </div>
 

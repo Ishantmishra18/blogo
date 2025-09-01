@@ -1,3 +1,4 @@
+import Post from '../models/postSchema.js';
 import User from '../models/userSchema.js';
 
 
@@ -67,3 +68,26 @@ export const getBookmarks = async (req, res) => {
   const user = await User.findById(req.user.id).populate('bookmarks');
   res.status(200).json(user.bookmarks);
 };
+
+export const addLike = async (req, res) => {
+  const { postID } = req.params;
+  const user = await User.findById(req.user.id);
+  const post = await Post.findById(postID);
+  if (!post) {
+    return res.status(404).json({ message: 'Post not found' });
+  }
+  Post.likes.push(user._id);
+  await Post.save();
+ };
+
+export const removeLike = async (req, res) => {
+  const { postID } = req.params;
+  const user = await User.findById(req.user.id);
+  const post = await Post.findById(postID);     
+    if (!post) {    
+        return res.status(404).json({ message: 'Post not found' });
+    }   
+    Post.likes = Post.likes.filter(id => id.toString() !== user._id.toString());
+    await Post.save();
+ }
+

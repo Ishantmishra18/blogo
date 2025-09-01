@@ -1,5 +1,5 @@
 // components/PostForm.jsx
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { CiCirclePlus } from "react-icons/ci";
 
 const PostForm = ({
@@ -11,144 +11,274 @@ const PostForm = ({
   submitLabel = "Create Your Blog"
 }) => {
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
+    title: initialData.title || '',
+    content: initialData.content || '',
     ...initialData
   });
 
-  const [coverPreview, setCoverPreview] = useState(initialData.coverUrl || '');
-  const [coverFile, setCoverFile] = useState(null);
+  const [selectedCoverOption, setSelectedCoverOption] = useState(initialData.coverUrl || null);
+  const textareaRef = useRef(null);
 
-  const [galleryFiles, setGalleryFiles] = useState([]);
-  const [galleryPreviews, setGalleryPreviews] = useState(initialData.galleryUrls || []);
-
-  const coverInputRef = useRef(null);
-  const galleryInputRef = useRef(null);
+  // Predefined cover options
+  const coverOptions = [
+    'https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+    'https://images.unsplash.com/photo-1455390582262-044cdead277a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+    'https://images.unsplash.com/photo-1516387938699-a93567ec168e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+    'https://images.unsplash.com/photo-1463171379579-3fdfb86d6285?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+    'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+    'https://images.unsplash.com/photo-1501504905252-473c47e087f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCoverUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setCoverFile(file);
-    setCoverPreview(URL.createObjectURL(file));
+  const handleSelectCoverOption = (optionUrl) => {
+    setSelectedCoverOption(optionUrl);
   };
 
   const handleRemoveCover = () => {
-    setCoverFile(null);
-    setCoverPreview('');
-  };
-
-  const handleGalleryUpload = (e) => {
-    const files = Array.from(e.target.files).slice(0, 8 - galleryFiles.length);
-    const previews = files.map(file => URL.createObjectURL(file));
-    setGalleryFiles(prev => [...prev, ...files]);
-    setGalleryPreviews(prev => [...prev, ...previews]);
-  };
-
-  const handleRemoveGalleryImage = (index) => {
-    const updatedFiles = galleryFiles.filter((_, i) => i !== index);
-    const updatedPreviews = galleryPreviews.filter((_, i) => i !== index);
-    setGalleryFiles(updatedFiles);
-    setGalleryPreviews(updatedPreviews);
+    setSelectedCoverOption(null);
   };
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData, coverFile, galleryFiles);
+    
+    if (!selectedCoverOption) {
+      alert('Please select a cover image');
+      return;
+    }
+    
+    // Pass the selected cover URL to the backend
+    onSubmit({
+      ...formData,
+      cover: selectedCoverOption
+    });
+  };
+
+  // Simple text formatting functions
+  const formatText = (format) => {
+    if (!textareaRef.current) return;
+    
+    const textarea = textareaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = formData.content.substring(start, end);
+    const before = formData.content.substring(0, start);
+    const after = formData.content.substring(end);
+    
+    let formattedText = selectedText;
+    
+    switch (format) {
+      case 'bold':
+        formattedText = `**${selectedText}**`;
+        break;
+      case 'italic':
+        formattedText = `_${selectedText}_`;
+        break;
+      case 'underline':
+        formattedText = `<u>${selectedText}</u>`;
+        break;
+      case 'code':
+        formattedText = `\`${selectedText}\``;
+        break;
+      case 'link':
+        formattedText = `[${selectedText}](url)`;
+        break;
+      default:
+        break;
+    }
+    
+    const newContent = before + formattedText + after;
+    setFormData(prev => ({ ...prev, content: newContent }));
+    
+    // Set cursor position after the formatted text
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + formattedText.length, start + formattedText.length);
+    }, 0);
   };
 
   return (
-    <div className="min-h-screen flex flex-col-reverse lg:flex-row w-screen">
+    <div className="min-h-screen flex flex-col-reverse lg:flex-row w-screen bg-gray-50">
       {/* Form Section */}
       <form onSubmit={handleFormSubmit} className="w-full lg:w-[65%] p-6 sm:p-10 flex flex-col">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">{submitLabel}</h2>
-        {successMsg && <p className="text-green-600">{successMsg}</p>}
-        {errorMsg && <p className="text-red-600">{errorMsg}</p>}
+        
+        {successMsg && (
+          <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg border border-green-200">
+            {successMsg}
+          </div>
+        )}
+        
+        {errorMsg && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg border border-red-200">
+            {errorMsg}
+          </div>
+        )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div className="col-span-1 sm:col-span-2">
-            <label className="text-sm font-medium text-gray-700">Title</label>
-            <input type="text" name="title" value={formData.title} onChange={handleChange}
-              className="w-full mt-1 p-3 bg-gray-100 rounded-xl" />
+        <div className="space-y-6">
+          <div>
+            <label className="text-sm font-medium text-gray-700">Title *</label>
+            <input 
+              type="text" 
+              name="title" 
+              value={formData.title} 
+              onChange={handleChange}
+              className="w-full mt-1 p-3 bg-white rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+              required 
+              placeholder="Enter your blog title"
+            />
           </div>
 
-          <div className="col-span-1 sm:col-span-2">
-            <label className="text-sm font-medium text-gray-700">your content</label>
-            <textarea name="description" value={formData.description} onChange={handleChange}
-              className="w-full mt-1 p-3 bg-gray-100 rounded-xl h-64" />
+          <div>
+            <label className="text-sm font-medium text-gray-700">Content *</label>
+            
+            {/* Simple formatting toolbar */}
+            <div className="flex flex-wrap gap-2 mb-2 p-2 bg-gray-100 rounded-lg">
+              <button type="button" onClick={() => formatText('bold')} className="px-3 py-1 bg-white border rounded-md hover:bg-gray-50">
+                <strong>B</strong>
+              </button>
+              <button type="button" onClick={() => formatText('italic')} className="px-3 py-1 bg-white border rounded-md hover:bg-gray-50">
+                <em>I</em>
+              </button>
+              <button type="button" onClick={() => formatText('underline')} className="px-3 py-1 bg-white border rounded-md hover:bg-gray-50">
+                <u>U</u>
+              </button>
+              <button type="button" onClick={() => formatText('code')} className="px-3 py-1 bg-white border rounded-md hover:bg-gray-50">
+                Code
+              </button>
+              <button type="button" onClick={() => formatText('link')} className="px-3 py-1 bg-white border rounded-md hover:bg-gray-50">
+                Link
+              </button>
+            </div>
+            
+            <textarea 
+              ref={textareaRef}
+              name="content" 
+              value={formData.content} 
+              onChange={handleChange}
+              className="w-full mt-1 p-3 bg-white rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              rows="15"
+              required
+              placeholder="Write your blog content here..."
+            />
+            
+            <div className="mt-2 text-sm text-gray-500">
+              <p>Formatting tips:</p>
+              <ul className="list-disc list-inside ml-4">
+                <li>**bold** for <strong>bold text</strong></li>
+                <li>_italic_ for <em>italic text</em></li>
+                <li>`code` for <code>inline code</code></li>
+                <li>[link text](url) for hyperlinks</li>
+              </ul>
+            </div>
           </div>
 
-          <div className="col-span-1 sm:col-span-2 flex justify-end">
-            <button type="submit"
-              className={`bg-black text-white px-6 py-3 rounded-xl hover:translate-y-1 cursor-pointer transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={loading}>
-              {loading ? 'Processing...' : submitLabel}
+          <div className="flex justify-end pt-4">
+            <button 
+              type="submit"
+              className={`bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 cursor-pointer transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={loading}
+            >
+              {loading ? 'Publishing...' : submitLabel}
             </button>
           </div>
         </div>
       </form>
 
       {/* Preview Section */}
-      <div className="w-full lg:w-[35%] bg-neutral-800 flex flex-col items-center justify-start p-6 gap-4">
-        {/* Cover Upload */}
-        <div
-          className="w-full aspect-video rounded-2xl overflow-hidden border-2 relative cursor-pointer group"
-          onClick={() => !coverFile && coverInputRef.current.click()}
-        >
-          {coverPreview ? (
-            <>
-              <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
+      <div className="w-full lg:w-[35%] bg-gradient-to-b from-neutral-900 to-gray-800 flex flex-col items-start p-6 gap-6">
+        <div className="w-full">
+          <h2 className="text-white text-xl font-semibold mb-4">Cover Image</h2>
+          <p className="text-gray-400 text-sm mb-4">Select a cover image for your blog</p>
+          
+          {/* Selected Cover Preview */}
+          {selectedCoverOption ? (
+            <div className="w-full aspect-video rounded-2xl overflow-hidden relative mb-6 border-2 border-blue-500">
+              <img 
+                src={selectedCoverOption} 
+                alt="Selected cover" 
+                className="w-full h-full object-cover" 
+              />
               <button
-                className="absolute top-2 right-2 text-white bg-red-600/70 rounded-sm px-2 py-1 text-xs hover:bg-red-700/80"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRemoveCover();
-                }}
+                type="button"
+                className="absolute top-3 right-3 text-white bg-red-600 rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-red-700 transition shadow-lg"
+                onClick={handleRemoveCover}
               >
                 ✕
               </button>
-            </>
+            </div>
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-white bg-white/35">
-              <div className="flex flex-col items-center">
-                <CiCirclePlus className="text-5xl" />
-                <h2>Cover Image</h2>
+            <div className="w-full aspect-video rounded-2xl overflow-hidden border-2 border-dashed border-gray-600 flex items-center justify-center mb-6">
+              <div className="text-center text-gray-400">
+                <CiCirclePlus className="text-4xl mx-auto mb-2" />
+                <p className="text-sm">No cover selected</p>
               </div>
             </div>
           )}
-          <input type="file" accept="image/*" ref={coverInputRef} onChange={handleCoverUpload} className="hidden" />
+
+          {/* Cover Options */}
+          <div>
+            <h3 className="text-white text-sm font-medium mb-3">Choose a cover image:</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {coverOptions.map((option, index) => (
+                <div
+                  key={index}
+                  className={`relative aspect-video rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
+                    selectedCoverOption === option 
+                      ? 'border-blue-500 ring-2 ring-blue-300 ring-opacity-50 scale-105' 
+                      : 'border-gray-600 hover:border-gray-400'
+                  }`}
+                  onClick={() => handleSelectCoverOption(option)}
+                >
+                  <img 
+                    src={option} 
+                    alt={`Cover option ${index + 1}`} 
+                    className="w-full h-full object-cover" 
+                  />
+                  {selectedCoverOption === option && (
+                    <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
+                      <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Gallery Upload */}
-        <h2 className="text-white text-sm sm:text-base">Add More Images (at least 2)</h2>
-        <div className="grid grid-cols-3 gap-2">
-          {galleryPreviews.map((src, i) => (
-            <div key={i} className="relative h-20 md:h-24 rounded-md overflow-hidden shadow border">
-              <img src={src} alt='ima' className="w-full h-full object-cover" />
-              <button
-                onClick={() => handleRemoveGalleryImage(i)}
-                className="absolute top-1 right-1 bg-red-600/70 text-white text-xs px-1 rounded-sm hover:bg-red-700/80"
-              >
-                ✕
-              </button>
+        {/* Blog Preview */}
+        {formData.title || formData.content ? (
+          <div className="w-full mt-6">
+            <h3 className="text-white text-lg font-medium mb-3">Preview:</h3>
+            <div className="bg-white rounded-lg p-4 shadow-lg">
+              {selectedCoverOption && (
+                <img 
+                  src={selectedCoverOption} 
+                  alt="Cover preview" 
+                  className="w-full h-40 object-cover rounded-md mb-3"
+                />
+              )}
+              {formData.title && (
+                <h4 className="text-lg font-semibold text-gray-800 mb-2">{formData.title}</h4>
+              )}
+              {formData.content && (
+                <div className="text-gray-600 text-sm">
+                  {formData.content.length > 150 
+                    ? formData.content.substring(0, 150) + '...' 
+                    : formData.content
+                  }
+                </div>
+              )}
             </div>
-          ))}
-          {galleryFiles.length < 8 && (
-            <>
-              <div
-                className="h-20 md:h-24 aspect-video rounded-md overflow-hidden shadow border bg-white/35 cursor-pointer grid place-content-center"
-                onClick={() => galleryInputRef.current.click()}
-              >
-                <CiCirclePlus className='text-3xl text-white' />
-              </div>
-              <input type="file" accept="image/*" multiple ref={galleryInputRef} onChange={handleGalleryUpload} className="hidden" />
-            </>
-          )}
-        </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

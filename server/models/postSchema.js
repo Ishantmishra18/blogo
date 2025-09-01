@@ -15,7 +15,14 @@ const postSchema = new mongoose.Schema(
         type: String, // URLs to uploaded images (can store Cloudinary URLs etc.)
       }
     ,
-    images:[{type:String}],
+    likes:[{
+        type: mongoose.Schema.Types.ObjectId, ref: "User"
+    }],
+    comments:{
+        type: [
+            {type: mongoose.Schema.Types.ObjectId, ref: "Comment"}
+        ]
+    },
     
    
     owner: {

@@ -2,27 +2,34 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 import { useUser } from '../Context/userContext';
+import Loader from '../Components/loader';
 
 
 const Login = () => {
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
+  const [ loading, setLoading ] = useState(false);
   const navigate = useNavigate();
   const { setUser } = useUser();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+        setLoading(true);
       const response = await api.post('/auth/login', form);
       setUser(response.data.user);
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
     }
+    finally {
+        setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row items-center justify-center bg-white">
+        {loading && <Loader></Loader>}
       <div className='h-screen w-[40vw] rounded-r-4xl md:block hidden'>
         <img src="https://m.media-amazon.com/images/I/81m3cKkCszL.jpg" alt="" className=' object-cover h-full w-full'/>
     </div>

@@ -8,19 +8,13 @@ import User from '../models/userSchema.js';
 // @access  Private
 export const createListing = async (req, res) => {
   try {
-    const { title, description} = req.body;
-    const coverFile = req.files?.cover?.[0];
-    const galleryFiles = req.files?.images || [];
-
-    const cover = coverFile?.path;
-    const images = galleryFiles.map(file => file.path);
+    const { title, description , cover} = req.body;
 
     const newListing = await Post.create({
       owner: req.user.id,
       title,
       description,
       cover,
-      images,
     });
 
     res.status(201).json({ message: 'Listing created successfully', listing: newListing });
@@ -43,21 +37,12 @@ export const updateListing = async (req, res) => {
     if (!post) return res.status(404).json({ message: 'Listing not found' });
     if (post.owner.toString() !== req.user.id.toString())
       return res.status(403).json({ message: 'Unauthorized' });
-    const {title , price , description , location}=req.body
-    const coverFile = req.files?.cover?.[0];
-    const galleryFiles = req.files?.images || [];
-
-    const cover = coverFile?.path;
-    const images = galleryFiles.map(file => file.path);
+    const {title ,  description , cover }=req.body
 
     const updatedPost = await Post.findByIdAndUpdate(req.params.id, {
       title,
       cover, 
       description,
-      location , 
-      price , 
-      images
-    
     },{
       new: true,
     });
@@ -124,3 +109,4 @@ export const getUserListings = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch user listings', error });
   }
 };
+

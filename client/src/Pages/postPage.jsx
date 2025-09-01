@@ -9,6 +9,7 @@ import Loader from '../Components/loader'
 const RoomDetails = ({ userBookmarks = [] }) => {
  
   const [bookmarked, setBookmarked] = useState(false);
+  const [liked , setLiked] = useState(false);
 
   const { postID } = useParams();
   const { posts } = usePost();
@@ -19,6 +20,20 @@ const RoomDetails = ({ userBookmarks = [] }) => {
       setBookmarked(true);
     }
   }, [userBookmarks, postID]);
+
+  const handleLike = async () => {
+    try {
+        if(liked){
+            await api.post(`/listing/like/${postID}`);
+        }
+        else{
+            await api.delete(`/listing/like/${postID}`);
+        }
+        setLiked(!liked);
+    } catch (err) {
+      console.error('Like error:', err);
+    }
+  }
 
   const handleBookmark = async () => {
     try {
@@ -61,6 +76,7 @@ const RoomDetails = ({ userBookmarks = [] }) => {
         </div>
 
         {/* Button */}
+        
         <Link
           to={`/profile/${post.owner._id}`}
           className=" px-2 md:px-4 py-1 md:py-2 text-sm bg-black text-white rounded-lg transition"
@@ -69,10 +85,16 @@ const RoomDetails = ({ userBookmarks = [] }) => {
         </Link>
       </div>
       </div>
-
+      <div className="flex gap-4">
         <button onClick={handleBookmark} className="text-black text-xl">
           {bookmarked ? <FaBookmark className="text-black" /> : <FaRegBookmark className="text-black" />}
         </button>
+        <button onClick={handleLike} className="text-black text-xl">
+            press for like
+        </button>
+      </div>
+
+        
       </div>
     </div>
 <div className="maincont mx-4 md:mx-20">
@@ -90,11 +112,14 @@ const RoomDetails = ({ userBookmarks = [] }) => {
     />
 </div>
 <h1 className='mb-2 mt-4 md:text-2xl font-bold text-lg '>{post.title}</h1>
-<p className='text-gray-700 text-sm md:text-base'>{post.description}</p>
+<p className='text-gray-700 text-sm md:text-base min-h-[20vh]'>{post.description}</p>
 
 
-    {/* Description & Owner Card */}
-  
+    {/* Comments section*/}
+    <h2 className='text-2xl'>Comments</h2>
+        <div className="w-full">
+
+        </div>
     </div>
   </div>
 );

@@ -15,21 +15,11 @@ import upload from '../middleware/upload.js';
 const router = express.Router();
 
 // Create a new listing
-router.post('/add', protect,
-  upload.fields([
-    { name: 'cover', maxCount: 1 },
-    { name: 'images', maxCount: 3 },
-  ]),
-  createListing
-);
+router.post('/add', protect, createListing);
 
 
 // Update an existing listing
-router.put('/:id', protect,
-  upload.fields([
-    {name:'cover' , maxCount :1},
-    {name: 'images' , maxCount :3 }
-  ]), updateListing);
+router.put('/:id', protect, updateListing);
 
 // Delete a listing
 router.delete('/:id', protect, deleteListing);

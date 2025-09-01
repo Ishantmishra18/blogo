@@ -7,11 +7,11 @@ const ListingPage = () => {
   const { posts } = usePost(); 
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className=" bg-gray-100">
       <Nav />
       <div className="flex py-10">
 
-        <div className="flex flex-col items-center w-screen gap-5 p-10">
+        <div className="flex flex-col min-h-screen items-center w-screen gap-5 p-10">
         {posts?.map((val, key) => (
         <RoomPost post={val} key={key}/>
         ))}

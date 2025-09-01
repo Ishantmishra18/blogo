@@ -86,7 +86,7 @@ const BlogCard = ({ post }) => {
             />
             <div>
               <p className="text-sm font-medium text-gray-700">{post.owner?.username || "User"}</p>
-              <p className="text-xs text-gray-500">Posted recently</p>
+              <p className="text-xs text-gray-500">likes {post.likes?.length}</p>
             </div>
           </div>
         </div>

@@ -12,6 +12,7 @@ import ListingPage from './Pages/listingPage';
 import Bookmark from './Pages/bookmark';
 import EditProfile from './Pages/editUser';
 import EditPost from './Pages/editPost';
+import YourPost from './Pages/yourPost';
 
 const router = createBrowserRouter([
   {
@@ -55,6 +56,9 @@ const router = createBrowserRouter([
   },{
     path:'/profile/edit',
     element:<EditProfile/>
+  },{
+    path:'/profile/yourpost',
+    element:<YourPost/>
   }
 ]);
 
