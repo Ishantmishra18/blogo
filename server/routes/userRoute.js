@@ -1,5 +1,5 @@
 import express from 'express';
-import upload from '../middleware/upload.js';
+
 import {
   addBookmark,
   removeBookmark,
@@ -17,6 +17,6 @@ router.delete('/bookmark/:postID', protect, removeBookmark);
 router.post('/like/:postID', protect, addLike);
 router.delete('/like/:postID', protect, removeLike);
 router.get('/bookmark', protect, getBookmarks);
-router.post('/edit' , protect , upload.single('image'), editUser);
+router.post('/edit' , protect , editUser);
 
 export default router;
