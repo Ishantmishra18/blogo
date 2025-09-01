@@ -11,7 +11,7 @@ const NavBar = () => {
     <nav className="bg-white shadow-md h-[10vh] px-6 py-3 flex justify-between items-center sticky top-0 z-40">
       {/* Brand */}
       <Link to="/" className="text-2xl font-extrabold text-black">
-        Travo
+        Blogo
       </Link>
 
       {/* Navigation Options */}
@@ -38,17 +38,6 @@ const NavBar = () => {
             <p className="text-gray-700 font-medium hidden sm:block">
               Welcome, <span className="font-semibold text-black">{user.username}</span>
             </p>
-
-            <Link
-              to="/chat"
-              className="relative flex items-center gap-1 px-4 py-2 rounded-xl bg-black text-white hover:bg-gray-800 transition"
-            >
-              <FiMail size={18} />
-              <span>Inbox</span>
-              <div className="absolute -top-2 -left-2 bg-red-600 text-xs font-semibold w-5 h-5 rounded-full flex items-center justify-center">
-                3
-              </div>
-            </Link>
 
             <Link
               to="/profile"

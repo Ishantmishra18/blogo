@@ -8,13 +8,11 @@ const PostForm = ({
   loading,
   successMsg,
   errorMsg,
-  submitLabel = "Create Listing"
+  submitLabel = "Create Your Blog"
 }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    location: '',
-    price: '',
     ...initialData
   });
 
@@ -64,7 +62,7 @@ const PostForm = ({
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row w-screen">
+    <div className="min-h-screen flex flex-col-reverse lg:flex-row w-screen">
       {/* Form Section */}
       <form onSubmit={handleFormSubmit} className="w-full lg:w-[65%] p-6 sm:p-10 flex flex-col">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6">{submitLabel}</h2>
@@ -79,21 +77,9 @@ const PostForm = ({
           </div>
 
           <div className="col-span-1 sm:col-span-2">
-            <label className="text-sm font-medium text-gray-700">Description</label>
+            <label className="text-sm font-medium text-gray-700">your content</label>
             <textarea name="description" value={formData.description} onChange={handleChange}
-              className="w-full mt-1 p-3 bg-gray-100 rounded-xl resize-none h-24" />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">Location</label>
-            <input type="text" name="location" value={formData.location} onChange={handleChange}
-              className="w-full mt-1 p-3 bg-gray-100 rounded-xl" />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">Price (₹)</label>
-            <input type="number" name="price" value={formData.price} onChange={handleChange}
-              className="w-full mt-1 p-3 bg-gray-100 rounded-xl" />
+              className="w-full mt-1 p-3 bg-gray-100 rounded-xl h-64" />
           </div>
 
           <div className="col-span-1 sm:col-span-2 flex justify-end">

@@ -34,7 +34,7 @@ const AddPost = () => {
       loading={loading}
       successMsg={successMsg}
       errorMsg={errorMsg}
-      submitLabel="Create Listing"
+      submitLabel="Create your Blog"
     />
   );
 };

@@ -32,7 +32,7 @@ const router = createBrowserRouter([
     element: <Register />,
   },
   {
-    path: '/listing/:postID',
+    path: '/blog/:postID',
     element: (
       <>
         <Navbar />

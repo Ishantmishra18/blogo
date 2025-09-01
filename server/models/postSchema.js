@@ -13,11 +13,9 @@ const postSchema = new mongoose.Schema(
     },
     cover:{
         type: String, // URLs to uploaded images (can store Cloudinary URLs etc.)
-        required: true,
       }
     ,
     images:[{type:String}],
-    mainCont:[{type:String}],
     
    
     owner: {

@@ -1,25 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaRegBookmark, FaBookmark } from "react-icons/fa6";
 import { useUser } from '../Context/userContext';
 import api from '../utils/api';
 
-const RoomPost = ({ post }) => {
-  const [bookmarked, setBookmarked] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
+const BlogCard = ({ post }) => {
+  const [bookmarked, setBookmarked] = React.useState(false);
   const { user, setUser } = useUser();
 
   const userBookmarks = user?.bookmarks;
-  const images = [post.cover, ...(post.images || [])];
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (userBookmarks?.includes(post._id)) {
       setBookmarked(true);
     }
   }, [post._id, userBookmarks]);
 
-  const handleBookmark = async () => {
+  const handleBookmark = async (e) => {
+    e.stopPropagation(); // Prevent navigation when clicking bookmark
     if (!user) return;
     try {
       if (bookmarked) {
@@ -41,104 +39,60 @@ const RoomPost = ({ post }) => {
     }
   };
 
-  const nextSlide = () => {
-    if (currentIndex < images.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    }
-  };
-
-  const prevSlide = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
-    }
-  };
-
   return (
-    <div className="w-[90vw] max-w-5xl bg-white rounded-2xl overflow-hidden shadow-md flex flex-col md:flex-row relative h-auto md:h-[30vh]">
-
+    <div className="w-full max-w-md mx-auto bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
       {/* Bookmark Icon */}
       {user && (
         <div
-          className="absolute top-4 right-4 text-xl cursor-pointer z-10"
+          className="absolute top-4 right-4 text-xl cursor-pointer z-10 bg-white p-2 rounded-full shadow-md"
           onClick={handleBookmark}
         >
           {bookmarked ? (
-            <FaBookmark className="text-black" />
+            <FaBookmark className="text-blue-600" />
           ) : (
-            <FaRegBookmark className="text-black" />
+            <FaRegBookmark className="text-gray-500 hover:text-blue-600" />
           )}
         </div>
       )}
-
-      {/* Image Slider */}
-            <div className="relative w-full md:w-[35%] h-60 md:h-full overflow-hidden">
-        {/* Arrows */}
-        {currentIndex > 0 && (
-          <button
-            onClick={prevSlide}
-            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black bg-opacity-30 text-white hover:bg-opacity-80 flex items-center justify-center z-10"
-          >
-            <FiChevronLeft size={20} />
-          </button>
-        )}
-        {currentIndex < images.length - 1 && (
-          <button
-            onClick={nextSlide}
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black bg-opacity-30 text-white hover:bg-opacity-80 flex items-center justify-center z-10"
-          >
-            <FiChevronRight size={20} />
-          </button>
-        )}
-
-        {/* Slides container */}
-        <div
-          className="flex h-full transition-transform duration-500 ease-in-out"
-          style={{
-            width: `${images.length * 100}%`,
-            transform: `translateX(-${currentIndex * (100 / images.length)}%)`,
-          }}
-        >
-          {images.map((img, idx) => (
-            <img
-              key={idx}
-              src={img}
-              alt={`slide-${idx}`}
-              className="w-full h-full object-cover flex-shrink-0"
-              style={{ width: `${100 / images.length}%` }}
-            />
-          ))}
+      
+      {/* Clickable Card Content */}
+      <Link to={`/blog/${post._id}`} className="block">
+        {/* Cover Image */}
+        <div className="relative w-full h-48 overflow-hidden">
+          <img
+            src={post.cover}
+            alt={post.title}
+            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+          />
+          {/* Overlay gradient for better text readability */}
+          <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-black/50 to-transparent"></div>
         </div>
-      </div>
-
-
-      {/* Post Content */}
-      <div className="w-full md:w-[65%] p-4 flex flex-col justify-between gap-2">
-        <div>
-          <h2 className="text-xl md:text-2xl font-semibold text-gray-800">{post.title}</h2>
-          <p className="text-sm text-gray-700">{post.location}</p>
-          <p className="text-sm text-gray-500 mt-1 line-clamp-2">{post.description}</p>
-          <div className="flex items-center gap-2 mt-2">
-            <h1 className="text-gray-400 text-sm">by {post.owner?.username || "User"}</h1>
+        
+        {/* Content */}
+        <div className="p-5">
+          <h2 className="text-xl font-bold text-gray-800 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
+            {post.title}
+          </h2>
+          <p className="text-gray-600 mb-4 line-clamp-3">
+            {post.description}
+          </p>
+          
+          {/* Author Info */}
+          <div className="flex items-center mt-4 pt-4 border-t border-gray-100">
             <img
               src={post.owner?.cover}
-              alt=""
-              className="h-7 w-7 border-2 border-gray-400 rounded-full object-cover"
+              alt={post.owner?.username || "User"}
+              className="h-8 w-8 rounded-full object-cover mr-3"
             />
+            <div>
+              <p className="text-sm font-medium text-gray-700">{post.owner?.username || "User"}</p>
+              <p className="text-xs text-gray-500">Posted recently</p>
+            </div>
           </div>
         </div>
-
-        <div className="flex justify-between items-center mt-3">
-          <p className="text-lg font-medium text-black">₹{post.price} / night</p>
-          <Link
-            to={`/listing/${post._id}`}
-            className="bg-black text-white px-4 py-2 text-sm md:text-base rounded-xl hover:bg-gray-900 transition"
-          >
-            View
-          </Link>
-        </div>
-      </div>
+      </Link>
     </div>
   );
 };
 
-export default RoomPost;
+export default BlogCard;

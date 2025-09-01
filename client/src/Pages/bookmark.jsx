@@ -15,10 +15,10 @@ const bookmarkedPosts = posts.filter(post =>
 );
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Your Bookmarked Rooms</h1>
+      <h1 className="text-2xl font-bold mb-4">Your Bookmarked Blog</h1>
       
       {bookmarkedPosts.length === 0 ? (
-        <p className="text-gray-500">You haven't bookmarked any rooms yet.</p>
+        <p className="text-gray-500">You haven't bookmarked any Blog yet.</p>
       ) : (
         <div className="space-y-6">
           {bookmarkedPosts.map(post => (

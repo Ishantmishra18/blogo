@@ -8,7 +8,7 @@ import User from '../models/userSchema.js';
 // @access  Private
 export const createListing = async (req, res) => {
   try {
-    const { title, description, location, price } = req.body;
+    const { title, description} = req.body;
     const coverFile = req.files?.cover?.[0];
     const galleryFiles = req.files?.images || [];
 
@@ -19,8 +19,6 @@ export const createListing = async (req, res) => {
       owner: req.user.id,
       title,
       description,
-      location,
-      price,
       cover,
       images,
     });
